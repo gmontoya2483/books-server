@@ -1,0 +1,23 @@
+{
+  "SERVER_PORT": 3000,
+  "DB_CONNECTION_URL": "",
+  "logger": {
+    "LOG_FILE": "logs/books_backend.log",
+    "LOG_FILE_EXCEPTIONS": "logs/books_backend_exceptions.log",
+    "LOG_GENERAL_LEVEL": "info",
+    "LOG_FILE_LEVEL": "warm",
+    "LOG_FILE_EXCEPTIONS_LEVEL": "error"
+  },
+  "jwt": {
+    "JWT_PRIVATE_KEY": "",
+    "JWT_AUTH_EXPIRES_IN": 3600,
+    "JWT_NOT_EXPIRES_IN": 172800
+  },
+  "notification": {
+    "NOT_BASE_URL": "http://localhost:4200/#"
+  },
+  "sendGrid": {
+    "SEND_GRID_API_KEY": "",
+    "SEND_GRID_FROM_EMAIL": ""
+  }
+}

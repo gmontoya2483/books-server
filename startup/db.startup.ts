@@ -4,7 +4,7 @@ import {DB_CONNECTION_URL} from "../globals/environment.global";
 
 module.exports = function(){
     //Connection to mongoDB
-    mongoose.connect(DB_CONNECTION_URL,
+    mongoose.connect( DB_CONNECTION_URL,
         { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true } )
         .then (() => {
             mongoose.set('useFindAndModify', false);

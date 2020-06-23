@@ -3,6 +3,7 @@ import express from 'express';
 import http from 'http';
 import {SERVER_PORT} from "../globals/environment.global";
 import * as socket from '../sockets/socket'
+import config from 'config';
 
 
 export default class ServerClass {
@@ -15,7 +16,7 @@ export default class ServerClass {
 
     private constructor() {
         this.app = express();
-        this.port = SERVER_PORT
+        this.port = SERVER_PORT;
         this.httpServer = new http.Server( this.app );
         this.io = socketIO( this.httpServer );
         this.listenSockets();

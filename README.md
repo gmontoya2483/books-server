@@ -23,25 +23,17 @@ node dist/
 
 ## Variables de Entorno
 
-#### Windows
-```
-> SET <variable_entorno>=<valor> 
-```
+Se debe crear un archivo llamado ``.env`` que debe estar en la raiz del proyecto. El contenido de este archivo debe ser el siguiente:   
 
-#### Linux
-```
-> export <variable_entorno>=<valor> 
-```
+```textmate
+NODE_ENV=
+book_api_port=
+book_api_db_connection_url=
+book_api_jwtPrivateKey=
+book_api_sendGridApiKey=
+book_api_sendGridFromEmail=
+``` 
 
-### Variables
-
-#### Servidor
-* ``PORT`` -  Puerto del servidor (Default: 3000 )
-* ``book_api_db_connection_url`` - String de conexión a base de datos MongoDB (Default: 'mongodb://localhost/books_db')
-
-#### Json Web Token
-* ``book_api_jwtPrivateKey`` -  Seed para la generación de Token (Default: 'jwtPrivateKey' )
-* ``book_api_jwtAuthExpiresIn`` -  Expiración del Token en segundos (Default: 3600)
 
 #### Logger (winston)
 * ``book_api_log_file`` - Ruta del archivo de logs de express (Default: 'logs/books_backend.log')

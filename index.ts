@@ -1,6 +1,8 @@
+// Inicializar variables de entorno
+require('./startup/env.startup')();
+
 import ServerClass from "./classes/server.class";
 import logger from "./startup/logger.startup";
-
 
 
 const server = ServerClass.instance;
