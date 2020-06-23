@@ -3,11 +3,12 @@ import _ from 'lodash';
 import { User } from '../models/user.model';
 import {Request, Response, Router} from "express";
 import Security from "../classes/security.class"
+const log_request = require('../middlewares/log_request.middleware');
 
 const router = Router();
 
 
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', [log_request],async (req: Request, res: Response) => {
     const result = validate(req.body);
     if  (result.error) return res.status(400)
         .json({
