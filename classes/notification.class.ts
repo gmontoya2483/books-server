@@ -6,7 +6,7 @@ export abstract class Notification {
     public static getValidationEmail( nombre: string, email: string, token: string ): ISendGridMessage{
 
         const to = email;
-        const subject = `Confirma tu correo electrónico`;
+        const subject = `Confirmar tu correo electrónico`;
 
         const html= `<!DOCTYPE html>
             <html lang="es">
@@ -31,6 +31,36 @@ export abstract class Notification {
 
         return this.generateNotification(to, subject, html);
     }
+
+
+    public static getChangePasswordEmail( nombre: string, email: string, token: string ): ISendGridMessage{
+
+        const to = email;
+        const subject = `Confirmar solicitud cambio de contraseña`;
+
+        const html= `<!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="utf-8"><title>Cambio de contraseña</title>
+            </head>
+            <body>
+                <h2>Confirma la solicitud de cambio de contraseña</h2>
+                <br>
+                <p>Hola ${nombre},</p>
+                 <p>Hemos recibido una solicitud de cambio de contraseña.</p>
+                 <br>
+                 <br>
+                 <h3>Haz click en el siguiente enlace para continuar con la solicitud:</h3>
+                 <br>
+                 <a href=${NOT_BASE_URL}/confirmarCambioPassword?token=${token}><h2>Cambiar contraseña</h2></a>
+                 <br>
+                 <p>Muchas gracias!!</p>
+            </body>
+            </html>`;
+
+        return this.generateNotification(to, subject, html);
+    }
+
 
 
     private static generateNotification (  to: string, subject: string, html: string): ISendGridMessage{

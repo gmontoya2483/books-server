@@ -79,7 +79,6 @@ router.post('/', [log_request], async (req:Request, res: Response)=>{
     await sendGrid.sendSingleEmail(emailMessage);
 
 
-
     // Guardar usuario
     logger.debug(`Guardar usuario en Base de Datos: ${JSON.stringify(user)}`);
     await user.save();
@@ -124,6 +123,75 @@ router.put('/validateEmail',[log_request, auth], async (req:Request, res: Respon
 });
 
 
+router.post('/changePassword', [log_request], async (req: Request, res: Response)=>{
+    const result = validateChangePasswordRequest(req.body);
+    if  (result.error) return res.status(400)
+        .json({
+            ok: false,
+            mensaje: result.error.details[0].message.replace(/['"]+/g, "")
+        });
+
+    // Validar email existe
+    let user = await User.findOne({email: req.body.email});
+    if (!user) return res.status(404)
+        .json({
+            ok: false,
+            mensaje: `email '${req.body.email}' no se encuentra registrado`
+        });
+
+    // Crear notificación
+    // @ts-ignore
+    const token = await user.generateNotificationToken();
+    // @ts-ignore
+    const emailMessage = Notification.getChangePasswordEmail(user.nombre, user.email, token);
+
+    // Enviar Notificacion
+    logger.debug(`Enviando Nofificacion a SendGrid: ${JSON.stringify(emailMessage)}`);
+    const sendGrid = new SendGrid();
+    await sendGrid.sendSingleEmail(emailMessage);
+
+    res.status(201).json({
+        ok: true,
+        // @ts-ignore
+        mensaje: `Para poder continuar con el cambio de contraseña, se envió un email a ${ user.email }`
+    });
+
+});
+
+
+router.put('/changePassword', [log_request, auth], async (req: Request, res: Response)=>{
+    const result = validateChangePassword(req.body);
+    if  (result.error) return res.status(400)
+        .json({
+            ok: false,
+            mensaje: result.error.details[0].message.replace(/['"]+/g, "")
+        });
+
+
+    const user = await User.findByIdAndUpdate(req.body.user._id, {
+        $set: {
+            password: await Security.generateHash(req.body.password)
+        }
+    }, {new: true})
+
+    if (!user) {
+        return res.status(404).json({
+            ok: false,
+            mensaje: "No se encntro el usuario"
+        });
+    }
+
+
+    return res.status(200).json({
+        ok: true,
+        // @ts-ignore
+        mensaje: `Se ha cambiado la contraseña para el usuario ${user.email}.`,
+        usuario:  _.pick(user,['_id', 'email', 'isValidated','isAdmin', 'nombre', 'apellido'])
+    })
+
+});
+
+
 /*********************************************************
  * Validaciones usuario recibido por http
  * *******************************************************/
@@ -149,6 +217,23 @@ function validateUser( user: any ) {
         isAdmin: Joi.boolean()
     });
     return schema.validate(user);
+}
+
+
+function validateChangePassword( body : any) {
+    const schema = Joi.object({
+        user: Joi.any(),
+        // @ts-ignore
+        password: passwordComplexity(passwordComplexityOptions).required()
+    });
+    return schema.validate(body);
+}
+
+function validateChangePasswordRequest( body : any) {
+    const schema = Joi.object({
+        email: Joi.string().min(8).max(30).required().email()
+    });
+    return schema.validate(body);
 }
 
 
