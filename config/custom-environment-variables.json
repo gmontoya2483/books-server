@@ -1,0 +1,14 @@
+{
+  "SERVER_PORT": "book_api_port",
+  "DB_CONNECTION_URL": "book_api_db_connection_url",
+  "jwt": {
+    "JWT_PRIVATE_KEY": "book_api_jwtPrivateKey"
+  },
+  "notification": {
+    "NOT_BASE_URL": "book_api_notBaseUrl"
+  },
+  "sendGrid": {
+    "SEND_GRID_API_KEY": "book_api_sendGridApiKey",
+    "SEND_GRID_FROM_EMAIL": "book_api_sendGridFromEmail"
+  }
+}

@@ -1,6 +1,6 @@
 {
   "name": "books-server",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Backend Server books_api",
   "main": "index.js",
   "scripts": {
@@ -10,9 +10,12 @@
   "license": "ISC",
   "dependencies": {
     "@hapi/joi": "^17.1.1",
+    "@sendgrid/mail": "^7.2.0",
     "bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",
+    "config": "^3.3.1",
     "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-async-errors": "^3.1.1",
     "fawn": "^2.1.5",
@@ -27,6 +30,7 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^3.0.0",
+    "@types/config": "0.0.36",
     "@types/cors": "^2.8.6",
     "@types/express": "^4.17.6",
     "@types/hapi__joi": "^17.1.2",
