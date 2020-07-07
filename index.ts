@@ -11,6 +11,7 @@ const server = ServerClass.instance;
 // Inicializar Rutas y Middlewares
 require('./startup/routes.startup')(server);
 require('./startup/db.startup')();
+require('./startup/validation.startup')();
 
 
 

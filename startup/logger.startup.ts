@@ -2,7 +2,7 @@ require('express-async-errors');
 import winston from "winston";
 import { LOG_FILE, LOG_FILE_EXCEPTIONS, LOG_GENERAL_LEVEL,LOG_FILE_LEVEL, LOG_FILE_EXCEPTIONS_LEVEL } from "../globals/environment.global";
 
-//TODO: Review thw format of the messages
+//TODO: Revisar formato de los mensajes
 
 /* *******************************
 ERROR LEVELS

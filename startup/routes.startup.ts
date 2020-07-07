@@ -8,6 +8,9 @@ import error from "../middlewares/error.middleware";
 import mensajes from "../routes/example.route";
 import users from "../routes/users.route"
 import auth from "../routes/auth.route"
+import uploads from "../routes/upload.route"
+import countries from "../routes/country.route"
+import communities from "../routes/community.route"
 
 
 module.exports = function(server: ServerClass){
@@ -26,6 +29,10 @@ module.exports = function(server: ServerClass){
     server.app.use('/api/example', mensajes);
     server.app.use('/api/users', users);
     server.app.use('/api/auth', auth);
+    server.app.use('/api/uploads', uploads);
+    server.app.use('/api/countries', countries);
+    server.app.use('/api/communities', communities);
+
 
 
     // Error Middleware

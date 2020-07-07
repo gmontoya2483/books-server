@@ -1,8 +1,6 @@
 import mongoose, {Schema } from 'mongoose';
-import jwt from 'jsonwebtoken';
 import Security from "../classes/security.class"
 import {JWT_PRIVATE_KEY, JWT_AUTH_EXPIRES_IN, JWT_NOT_EXPIRES_IN} from "../globals/environment.global";
-import * as module from "module";
 
 
 
@@ -41,6 +39,10 @@ const userSchema = new mongoose.Schema({
     isAdmin: {
         type: Boolean,
         default: false
+    },
+    img: {
+      type: String,
+      default: ''
     },
     createdDateTime: {
         type: Date,

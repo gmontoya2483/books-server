@@ -14,7 +14,6 @@ export class SendGrid {
 
     constructor() {
 
-        //TODO: SACAR APIKEY
         logger.debug(`SendGridApiKey: ${SEND_GRID_API_KEY}`);
         logger.debug(`SendGridFromEmail: ${SEND_GRID_FROM_EMAIL}`);
         this.sgMail.setApiKey(SEND_GRID_API_KEY);
