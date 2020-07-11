@@ -16,12 +16,16 @@ export const JWT_PRIVATE_KEY: string = config.get('jwt.JWT_PRIVATE_KEY');
 export const JWT_AUTH_EXPIRES_IN: number = config.get('jwt.JWT_AUTH_EXPIRES_IN');  // 3600 Segundos - 4 hs
 export const JWT_NOT_EXPIRES_IN: number = config.get('jwt.JWT_NOT_EXPIRES_IN');  // Segundos - 2 días
 
-
 //Notification
 export const NOT_BASE_URL: string = config.get('notification.NOT_BASE_URL');
 
 //SendGrid
 export const SEND_GRID_API_KEY: string = config.get('sendGrid.SEND_GRID_API_KEY');
 export const SEND_GRID_FROM_EMAIL: string = config.get('sendGrid.SEND_GRID_FROM_EMAIL');
+
+//Uploads
+export const IMG_NOT_FOUND_PATH: string = config.get('uploads.IMG_NOT_FOUND_PATH');
+export const IMG_USERS_PATH: string = config.get('uploads.IMG_USERS_PATH');
+
 
 

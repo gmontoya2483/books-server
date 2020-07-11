@@ -1,6 +1,7 @@
 import mongoose, {Schema } from 'mongoose';
 import Security from "../classes/security.class"
 import {JWT_PRIVATE_KEY, JWT_AUTH_EXPIRES_IN, JWT_NOT_EXPIRES_IN} from "../globals/environment.global";
+import {countrySchema} from "./country.model";
 
 
 
@@ -42,7 +43,23 @@ const userSchema = new mongoose.Schema({
     },
     img: {
       type: String,
-      default: ''
+      default: null
+    },
+    paisResidencia:{
+        type: countrySchema,
+        default: null
+    },
+    comunidad: {
+        type: new mongoose.Schema({
+            name: {
+                type: String,
+                required: true,
+                trim: true,
+                minlength: 5,
+                maxlength: 255
+            }
+        }),
+        default: null
     },
     createdDateTime: {
         type: Date,
@@ -51,7 +68,17 @@ const userSchema = new mongoose.Schema({
 });
 
 userSchema.methods.generateAuthToken = async function () {
-    return Security.generateJWT({_id: this._id, nombre: this.nombre, apellido: this.apellido, email: this.email, isValidated: this.isValidated, isAdmin: this.isAdmin},
+    return Security.generateJWT({
+            _id: this._id,
+            nombre: this.nombre,
+            apellido: this.apellido,
+            email: this.email,
+            isValidated: this.isValidated,
+            isAdmin: this.isAdmin,
+            img: this.img,
+            paisResidencia: this.paisResidencia,
+            comunidad: this.comunidad
+        },
         JWT_PRIVATE_KEY, JWT_AUTH_EXPIRES_IN);
 };
 

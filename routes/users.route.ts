@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import Security from "../classes/security.class"
 import { User } from '../models/user.model';
 import _ from 'lodash';
-import Joi from "@hapi/joi";
+const Joi = require('@hapi/joi');
 import passwordComplexity from "joi-password-complexity";
 import logger from "../startup/logger.startup";
 import {Notification} from "../classes/notification.class";
