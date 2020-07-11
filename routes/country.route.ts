@@ -5,6 +5,7 @@ const log_request = require('../middlewares/log_request.middleware');
 const admin = require('../middlewares/admin.middleware');
 const validated = require('../middlewares/validated.middleware');
 import { Country } from '../models/country.model';
+import {Community} from "../models/community.model";
 
 const router = Router();
 
@@ -12,7 +13,7 @@ const mongoose = require('mongoose');
 const Fawn = require('fawn');
 
 // Init fawn for using transactions
-Fawn.init(mongoose);
+Fawn.init(mongoose, 'trxCountryCommunitiesUsers');
 
 
 router.get('/', [log_request, auth, validated], async (req: Request, res: Response) => {
@@ -47,18 +48,14 @@ router.get('/:id/communities', [log_request, auth, validated], async(req: Reques
         });
     }
 
-    // TODO: Sacar harcode de Comunidades y poner las correctas
+    const communities = await Community.find({'country._id': req.params.id})
+        .sort('name').select({ name: 1});
+
+
     res.json({
         ok: true,
         country,
-        communities: [{
-           _id: '34234234234234242ddc',
-           name: 'Argentinos en Viena'
-        },
-            {
-                _id: 'sdfsdfsdf3343443',
-                name: 'Argentinos en Salzburgo'
-            }]
+        communities
     });
 });
 
@@ -83,16 +80,17 @@ router.post('/', [log_request, auth, validated, admin ], async (req:Request, res
 
 router.delete('/:id', [log_request, auth, validated, admin], async (req:Request, res: Response) => {
 
-    // TODO Varificar que el pais no tenga ninguna comunidad asociada.
-    // const cities = await City.findOne({'country._id': req.params.id}).select({name: 1}).sort('name');
-    // if (cities) return res.status(400).send({message: "Country has linked cities"})
+    const community = await Community.findOne({'country._id': req.params.id}).select({name: 1});
+    if (community) return res.status(400).json({
+        ok: false,
+        mensaje: "El Pais tiene comunidades asociadas"
+    });
 
     const country = await Country.findByIdAndDelete(req.params.id);
     if (!country) return res.status(404).json({
         ok: false,
         mensaje: "Pais no encontrado"
     });
-
 
     res.json({
         ok: true,
@@ -122,15 +120,6 @@ router.put('/:id', [log_request, auth, validated, admin],async(req: Request, res
     // @ts-ignore
     country.name = req.body.name;
 
-
-    // await country.save();
-    // return res.json({ok: true,
-    //     // @ts-ignore
-    //     mensaje: `El pais ${ country.name } ha sido modificado`,
-    //     country});
-
-    // TODO: Agregar la transacción para modificar las comunidades una vez que este listo el CRUD de comunidades
-
     try {
         new Fawn.Task()
             .update('countries', {_id: country._id}, {
@@ -140,6 +129,10 @@ router.put('/:id', [log_request, auth, validated, admin],async(req: Request, res
             .update('communities', {'country._id': country._id},{
                 // @ts-ignore
                 $set: {'country.name': country.name}
+            })
+            .update('users', {'paisResidencia._id': country._id},{
+                // @ts-ignore
+                $set: {'paisResidencia.name': country.name}
             })
             .options({multi: true})
             .run();
