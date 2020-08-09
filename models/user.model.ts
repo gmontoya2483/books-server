@@ -79,7 +79,7 @@ userSchema.methods.generateAuthToken = async function () {
             paisResidencia: this.paisResidencia,
             comunidad: this.comunidad
         },
-        JWT_PRIVATE_KEY, JWT_AUTH_EXPIRES_IN);
+        JWT_PRIVATE_KEY);
 };
 
 userSchema.methods.generateNotificationToken = async function () {

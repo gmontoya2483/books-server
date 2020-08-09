@@ -237,6 +237,4 @@ function validateChangePasswordRequest( body : any) {
     return schema.validate(body);
 }
 
-
-
 export default router;

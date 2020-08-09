@@ -1,3 +1,4 @@
+import logger from "../startup/logger.startup";
 import { NextFunction, Request, Response } from "express";
 
 import ServerClass from "../classes/server.class";
@@ -14,6 +15,6 @@ server.app.use(fileUpload({
 
 module.exports = async function fileUpload  (req: Request , res: Response, next: NextFunction){
     // @ts-ignore
-    console.log(" ===== files : " + req.files);
+    logger.debug(" ===== files : " + JSON.stringify(req.files));
     next();
 }

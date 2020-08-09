@@ -15,7 +15,6 @@ import {IMG_USERS_PATH} from "../globals/environment.global";
 
 const router = Router();
 
-
 router.put('/', [log_request, auth, validated], async (req:Request, res: Response)=> {
 
     // Validar request body
@@ -25,22 +24,6 @@ router.put('/', [log_request, auth, validated], async (req:Request, res: Respons
             ok: false,
             mensaje: result.error.details[0].message.replace(/['"]+/g, "")
         });
-
-
-    // Obtener la comunidad
-    let communityTemp: any;
-    let community = null;
-    if( !req.body.comunidadId ){
-        communityTemp = null;
-    } else {
-        community = await Community.findById(req.body.comunidadId);
-        if (!community) return res.status(404).json({
-            ok: false,
-            mensaje: "Comunidad no encontrada"
-        });
-        // @ts-ignore
-        communityTemp = {_id: community._id, name: community.name };
-    }
 
 
     // Obtener el pais de residencia
@@ -55,27 +38,6 @@ router.put('/', [log_request, auth, validated], async (req:Request, res: Respons
         });
     }
 
-    // Verificar que no se haya ingresado una comunidad sin que haya un pais
-    // @ts-ignore
-    if (community && !country) {
-        return res.status(400).json({
-            ok: false,
-            mensaje: "Se debe ingresar el un pais de residencia al cual pertenece la comunidad."
-        });
-    }
-
-
-    // Verificar que la comunidad pertenece al pais
-    // @ts-ignore
-    if (community && country && !community.country._id.equals(country._id)) {
-        // @ts-ignore
-        return res.status(400).json({
-            ok: false,
-            mensaje: "La comunidad seleccionada no pertenece al pais de residencia seleccionado."
-        });
-    }
-
-
     // Obtener el usuario
     // @ts-ignore
     let me = await User.findById(req.user._id).select({password: 0});
@@ -86,14 +48,39 @@ router.put('/', [log_request, auth, validated], async (req:Request, res: Respons
         });
     }
 
+    // Si no hay pais de residencia, borrar la comunidad del usuario
+    if (!country) {
+        // @ts-ignore
+        me.comunidad = null;
+
+    }
+    // Si se cambió el pais de residencia,  borrar la comunidad del usuario
+    // @ts-ignore
+    if (me.comunidad){
+        // @ts-ignore
+        const community = await Community.findById(me.comunidad._id);
+        if(!community){
+            // @ts-ignore
+            logger.warn(`No se encontró la comunidad asignada al usuario  y fue removida del mismo: ${JSON.stringify(me.comunidad)}`);
+            // @ts-ignore
+            me.comunidad = null;
+        } else {
+            // @ts-ignore
+            if (country && !community.country._id.equals(country._id)){
+                // @ts-ignore
+                me.comunidad = null;
+            }
+        }
+    }
+
+
     // @ts-ignore
     me.nombre = req.body.nombre;
     // @ts-ignore
     me.apellido = req.body.apellido;
     // @ts-ignore
     me.paisResidencia = country;
-    // @ts-ignore
-    me.comunidad = communityTemp
+
 
     // @ts-ignore
     const token = await me.generateAuthToken();
@@ -110,6 +97,94 @@ router.put('/', [log_request, auth, validated], async (req:Request, res: Respons
         token: token
     });
 });
+
+
+
+router.put('/community', [log_request, auth, validated], async (req:Request, res: Response)=> {
+
+    // Validar request body
+    const result = validateMyCommunity(req.body);
+    if  (result.error) return res.status(400)
+        .json({
+            ok: false,
+            mensaje: result.error.details[0].message.replace(/['"]+/g, "")
+        });
+
+
+    // Obtener la comunidad
+    let community: any = null;
+    let communityTemp: any = null;
+
+    if( !req.body.comunidadId ){
+        communityTemp = null;
+    } else {
+        community = await Community.findById(req.body.comunidadId);
+        if (!community) return res.status(404).json({
+            ok: false,
+            mensaje: "Comunidad no encontrada"
+        });
+        // @ts-ignore
+        communityTemp = {_id: community._id, name: community.name };
+    }
+
+    // Obtener el Usuario
+    // @ts-ignore
+    let me = await User.findById(req.user._id).select({password: 0});
+    if (!me) {
+        return res.status(404).json({
+            ok: false,
+            mensaje: "Usuario no encontrado"
+        });
+    }
+
+    // Verificar que la comunidad seleccionada corresponda al pais de residencia del ususario
+    // @ts-ignore
+    if (!me.paisResidencia){
+        return res.status(400).json({
+            ok: false,
+            mensaje: "El usuario no posee un pais de residencia."
+        });
+    } else {
+        // @ts-ignore
+        if (community  && !community.country._id.equals(me.paisResidencia._id)){
+            return res.status(400).json({
+                ok: false,
+                mensaje: "La comunidad seleccionada no pertenece al pais de residencia del usuario."
+            });
+        }
+    }
+
+
+    // @ts-ignore
+    me.comunidad = communityTemp
+
+    // @ts-ignore
+    const token = await me.generateAuthToken();
+
+    logger.debug(`Guardar Me en Base de Datos: ${JSON.stringify(me)}`);
+    await me.save();
+
+    // Verificar si el usario no posee comunidad e informar
+    // @ts-ignore
+    if (!me.comunidad) return res.json({
+        ok: true,
+        // @ts-ignore
+        mensaje: `El usuario, ${me.email} no esta suscripto a ningúna comunidad`,
+        me,
+        token: token
+    });
+
+
+    return res.json({
+        ok: true,
+        // @ts-ignore
+        mensaje: `El usuario, ${me.email}, se ha suscripto a la comunidad  '${me.comunidad.name}'`,
+        me,
+        token: token
+    });
+
+});
+
 
 
 router.get('/', [log_request, auth, validated], async (req:Request, res: Response)=>{
@@ -199,7 +274,8 @@ router.put('/img', [fileUpload, log_request, auth, validated], async (req:Reques
     // @ts-ignore
     me.img = nombreArchivo;
     // @ts-ignore
-    console.log(me.img);
+    logger.debug(me.img)
+
 
     // @ts-ignore
     const token = await me.generateAuthToken();
@@ -219,13 +295,6 @@ router.put('/img', [fileUpload, log_request, auth, validated], async (req:Reques
 });
 
 
-router.get('/img', [log_request, auth, validated], async (req:Request, res: Response)=>{
-    // @ts-ignore
-    const meImg = req.user.img;
-    const pathImg = `${ IMG_USERS_PATH }/${ meImg }`;
-    UploadFile.getImgFile(pathImg, res);
-});
-
 
 
 
@@ -238,11 +307,19 @@ function validateMe( user: any ) {
     const schema = Joi.object({
         nombre: Joi.string().min(5).max(255).required(),
         apellido: Joi.string().min(5).max(255).required(),
-        paisResidenciaId: Joi.objectId(),
-        comunidadId: Joi.objectId(),
+        paisResidenciaId: Joi.objectId()
     });
     return schema.validate(user);
 }
+
+function validateMyCommunity( user: any ){
+    const schema = Joi.object({
+        comunidadId: Joi.objectId()
+    });
+    return schema.validate(user);
+}
+
+
 
 
 

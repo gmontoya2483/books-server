@@ -98,4 +98,11 @@ export default class UploadFile {
 
     }
 
+
+    public static getNoImageFile(res: Response){
+        const pathNoImg = path.resolve(__dirname, IMG_NOT_FOUND_PATH);
+        return res.sendFile(pathNoImg);
+    }
+
+
 }
