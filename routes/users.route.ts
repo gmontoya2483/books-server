@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import Security from "../classes/security.class"
 import { User } from '../models/user.model';
 import _ from 'lodash';
-import Joi from "@hapi/joi";
+const Joi = require('@hapi/joi');
 import passwordComplexity from "joi-password-complexity";
 import logger from "../startup/logger.startup";
 import {Notification} from "../classes/notification.class";
@@ -21,7 +21,7 @@ router.get('/', [log_request, auth], (req:Request, res: Response)=>{
         total_paginas: 1,
         total: 2,
         user: req.body.user,
-        mensaje: 'lista de usuarios',
+        mensaje: 'lista de users',
         usuarios: [
             {
                 _id: '112223454',
@@ -82,7 +82,7 @@ router.post('/', [log_request], async (req:Request, res: Response)=>{
     // Guardar usuario
     logger.debug(`Guardar usuario en Base de Datos: ${JSON.stringify(user)}`);
     await user.save();
-    res.status(201).json({
+    return res.status(201).json({
         ok: true,
         // @ts-ignore
         mensaje: `Usuario ${user.email} ha sido creado. Debe validar su dirección de correo electrónico`,
@@ -95,7 +95,8 @@ router.post('/', [log_request], async (req:Request, res: Response)=>{
 
 router.put('/validateEmail',[log_request, auth], async (req:Request, res: Response) => {
 
-    const user = await User.findByIdAndUpdate(req.body.user._id, {
+    // @ts-ignore
+    const user = await User.findByIdAndUpdate(req.user._id, {
         $set: {
             isValidated: {
                 value: true,
@@ -168,7 +169,8 @@ router.put('/changePassword', [log_request, auth], async (req: Request, res: Res
         });
 
 
-    const user = await User.findByIdAndUpdate(req.body.user._id, {
+    // @ts-ignore
+    const user = await User.findByIdAndUpdate(req.user._id, {
         $set: {
             password: await Security.generateHash(req.body.password)
         }
@@ -222,7 +224,6 @@ function validateUser( user: any ) {
 
 function validateChangePassword( body : any) {
     const schema = Joi.object({
-        user: Joi.any(),
         // @ts-ignore
         password: passwordComplexity(passwordComplexityOptions).required()
     });
@@ -235,7 +236,5 @@ function validateChangePasswordRequest( body : any) {
     });
     return schema.validate(body);
 }
-
-
 
 export default router;

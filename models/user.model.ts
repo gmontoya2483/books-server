@@ -1,8 +1,7 @@
 import mongoose, {Schema } from 'mongoose';
-import jwt from 'jsonwebtoken';
 import Security from "../classes/security.class"
 import {JWT_PRIVATE_KEY, JWT_AUTH_EXPIRES_IN, JWT_NOT_EXPIRES_IN} from "../globals/environment.global";
-import * as module from "module";
+import {countrySchema} from "./country.model";
 
 
 
@@ -42,6 +41,26 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    img: {
+      type: String,
+      default: null
+    },
+    paisResidencia:{
+        type: countrySchema,
+        default: null
+    },
+    comunidad: {
+        type: new mongoose.Schema({
+            name: {
+                type: String,
+                required: true,
+                trim: true,
+                minlength: 5,
+                maxlength: 255
+            }
+        }),
+        default: null
+    },
     createdDateTime: {
         type: Date,
         default: Date.now
@@ -49,8 +68,18 @@ const userSchema = new mongoose.Schema({
 });
 
 userSchema.methods.generateAuthToken = async function () {
-    return Security.generateJWT({_id: this._id, nombre: this.nombre, apellido: this.apellido, email: this.email, isValidated: this.isValidated, isAdmin: this.isAdmin},
-        JWT_PRIVATE_KEY, JWT_AUTH_EXPIRES_IN);
+    return Security.generateJWT({
+            _id: this._id,
+            nombre: this.nombre,
+            apellido: this.apellido,
+            email: this.email,
+            isValidated: this.isValidated,
+            isAdmin: this.isAdmin,
+            img: this.img,
+            paisResidencia: this.paisResidencia,
+            comunidad: this.comunidad
+        },
+        JWT_PRIVATE_KEY);
 };
 
 userSchema.methods.generateNotificationToken = async function () {

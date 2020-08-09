@@ -19,5 +19,9 @@
   "sendGrid": {
     "SEND_GRID_API_KEY": "",
     "SEND_GRID_FROM_EMAIL": ""
+  },
+  "uploads": {
+    "IMG_NOT_FOUND_PATH": "../assets/no-img.jpg",
+    "IMG_USERS_PATH": "../uploads/users"
   }
 }

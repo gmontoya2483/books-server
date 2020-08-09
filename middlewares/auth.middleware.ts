@@ -4,13 +4,20 @@ import { NextFunction, Request, Response } from "express";
 
 module.exports = async function auth  (req: Request , res: Response, next: NextFunction){
     const token = req.header('x-auth-token');
-    if(!token) return res.status(401).send({ok: false, mensaje: "Acceso denegado. No se recibió el token."});
+    if(!token) return res.status(401).json({
+        ok: false,
+        mensaje: "Acceso denegado. No se recibió el token."
+    });
 
     try {
         const decoded = await Security.validateJWT(token, JWT_PRIVATE_KEY);
-        req.body.user = decoded;
+        // @ts-ignore
+        req.user = decoded;
         next();
     } catch (e) {
-        res.status(400).send({ok: false, message: "token inválido."});
+        res.status(400).json({
+            ok: false,
+            mensaje: "token inválido."
+        });
     }
 };
