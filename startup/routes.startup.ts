@@ -12,6 +12,8 @@ import uploads from "../routes/upload.route"
 import countries from "../routes/country.route"
 import communities from "../routes/community.route"
 import me from "../routes/me.route"
+import me_following from "../routes/me.following.route"
+import me_follower from "../routes/me.follower.route"
 import img from "../routes/img.route"
 
 
@@ -34,7 +36,12 @@ module.exports = function(server: ServerClass){
     server.app.use('/api/uploads', uploads);
     server.app.use('/api/countries', countries);
     server.app.use('/api/communities', communities);
+
     server.app.use('/api/me', me);
+    server.app.use('/api/me/following', me_following);
+    server.app.use('/api/me/followers', me_follower);
+
+
     server.app.use('/api/img', img);
 
 

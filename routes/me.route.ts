@@ -10,10 +10,28 @@ import { Community } from '../models/community.model';
 import { Country } from "../models/country.model";
 import { User } from "../models/user.model";
 import UploadFile from "../classes/uploadfile.class";
-import {IMG_USERS_PATH} from "../globals/environment.global";
+import {DEFAULT_PAGE_SIZE, IMG_USERS_PATH} from "../globals/environment.global";
 
 
 const router = Router();
+
+router.get('/', [log_request, auth, validated], async (req:Request, res: Response)=>{
+
+    // @ts-ignore
+    const me  = await User.findById(req.user._id).select({password: 0});
+    if( !me ){
+        return res.status(404).json({
+            ok: false,
+            mensaje: "Usuario no encontrado"
+        });
+    }
+
+    return res.json({
+        ok: true,
+        me
+    });
+
+});
 
 router.put('/', [log_request, auth, validated], async (req:Request, res: Response)=> {
 
@@ -24,7 +42,6 @@ router.put('/', [log_request, auth, validated], async (req:Request, res: Respons
             ok: false,
             mensaje: result.error.details[0].message.replace(/['"]+/g, "")
         });
-
 
     // Obtener el pais de residencia
     let country: any;
@@ -73,7 +90,6 @@ router.put('/', [log_request, auth, validated], async (req:Request, res: Respons
         }
     }
 
-
     // @ts-ignore
     me.nombre = req.body.nombre;
     // @ts-ignore
@@ -81,13 +97,11 @@ router.put('/', [log_request, auth, validated], async (req:Request, res: Respons
     // @ts-ignore
     me.paisResidencia = country;
 
-
     // @ts-ignore
     const token = await me.generateAuthToken();
 
     logger.debug(`Guardar Me en Base de Datos: ${JSON.stringify(me)}`);
     await me.save();
-
 
     return res.json({
         ok: true,
@@ -100,6 +114,7 @@ router.put('/', [log_request, auth, validated], async (req:Request, res: Respons
 
 
 
+
 router.put('/community', [log_request, auth, validated], async (req:Request, res: Response)=> {
 
     // Validar request body
@@ -109,7 +124,6 @@ router.put('/community', [log_request, auth, validated], async (req:Request, res
             ok: false,
             mensaje: result.error.details[0].message.replace(/['"]+/g, "")
         });
-
 
     // Obtener la comunidad
     let community: any = null;
@@ -154,7 +168,6 @@ router.put('/community', [log_request, auth, validated], async (req:Request, res
         }
     }
 
-
     // @ts-ignore
     me.comunidad = communityTemp
 
@@ -174,7 +187,6 @@ router.put('/community', [log_request, auth, validated], async (req:Request, res
         token: token
     });
 
-
     return res.json({
         ok: true,
         // @ts-ignore
@@ -186,24 +198,58 @@ router.put('/community', [log_request, auth, validated], async (req:Request, res
 });
 
 
+router.get('/community/members', [log_request, auth, validated], async (req:Request, res: Response)=> {
 
-router.get('/', [log_request, auth, validated], async (req:Request, res: Response)=>{
+    let pageNumber = Number(req.query.page) || 1;
+    const pageSize = Number(req.query.pageSize) || DEFAULT_PAGE_SIZE;
 
     // @ts-ignore
-    const me  = await User.findById(req.user._id).select({password: 0});
-    if( !me ){
+    if (!req.user.comunidad){
         return res.status(404).json({
             ok: false,
-            mensaje: "Usuario no encontrado"
+            mensaje: "El usuario no esta registrado en ninguna comunidad"
         });
     }
 
-    return res.json({
-        ok: true,
-        me
+    // @ts-ignore
+    const community = await Community.findById(req.user.comunidad._id);
+    if (!community) return res.status(404).json({
+        ok: false,
+        mensaje: "Comunidad no encontrada"
     });
 
+    // Calcular total de usuarios y páginas
+    const totalUsers = await User.countDocuments({'comunidad._id': community._id});
+    const totalPages = await Math.ceil(totalUsers / pageSize);
+    if (pageNumber > totalPages ) {
+        pageNumber = totalPages;
+    }
+
+    const users = await User.find({'comunidad._id': community._id})
+        .skip((pageNumber - 1) * pageSize)
+        .limit(pageSize)
+        .sort('nombre apellido').select({ password: 0});
+
+
+    // TODO: Buscar por cada usuario si lo estas siguiendo o si es seguidor tuyo
+
+
+    return res.json({
+        ok: true,
+        community,
+        users: {
+            pagination: {
+                actual_page: pageNumber,
+                total_pages: totalPages
+            },
+            total_users: totalUsers,
+            users
+        }
+    });
 });
+
+
+
 
 
 router.post('/token', [log_request, auth, validated], async (req:Request, res: Response)=>{
@@ -296,8 +342,6 @@ router.put('/img', [fileUpload, log_request, auth, validated], async (req:Reques
 
 
 
-
-
 /*********************************************************
  * Validaciones usuario recibido por http
  * *******************************************************/
@@ -318,8 +362,6 @@ function validateMyCommunity( user: any ){
     });
     return schema.validate(user);
 }
-
-
 
 
 

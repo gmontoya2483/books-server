@@ -8,6 +8,7 @@ const admin = require('../middlewares/admin.middleware');
 const validated = require('../middlewares/validated.middleware');
 import { Community } from '../models/community.model';
 import { Country } from "../models/country.model";
+import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
 
 const router = Router();
 
@@ -145,6 +146,46 @@ router.put('/:id', [auth, validated, admin], async(req: Request, res: Response) 
             mensaje: `Internal Server Error.`});
     }
 
+});
+
+
+router.get('/:id/members', [auth, validated], async(req: Request, res: Response) => {
+
+
+    let pageNumber = Number(req.query.page) || 1;
+    const pageSize = Number(req.query.pageSize) || DEFAULT_PAGE_SIZE;
+    const community = await Community.findById(req.params.id);
+
+    if (!community) return res.status(404).json({
+        ok: false,
+        mensaje: "Comunidad no encontrada"
+    });
+
+    // Calcular total de usuarios y páginas
+    const totalUsers = await User.countDocuments({'comunidad._id': req.params.id});
+    const totalPages = await Math.ceil(totalUsers / pageSize);
+    if (pageNumber > totalPages ) {
+        pageNumber = totalPages;
+    }
+
+    const users = await User.find({'comunidad._id': req.params.id})
+        .skip((pageNumber - 1) * pageSize)
+        .limit(pageSize)
+        .sort('nombre apellido').select({ password: 0});
+
+
+    return res.json({
+        ok: true,
+        community,
+        users: {
+            pagination: {
+                actual_page: pageNumber,
+                total_pages: totalPages
+            },
+            total_users: totalUsers,
+            users
+        }
+    });
 });
 
 
