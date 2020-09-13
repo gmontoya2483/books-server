@@ -125,7 +125,7 @@ router.get('/', [log_request, auth, validated], async (req:Request, res: Respons
 
 
 
-// trae un usuario al que estoy siguiendo (follower: me._id, folloing: :id)
+// trae un usuario al que estoy siguiendo (follower: me._id, following: :id)
 router.get('/:id', [log_request, auth, validated], async (req:Request, res: Response)=>{
 
     // @ts-ignore
