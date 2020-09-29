@@ -11,6 +11,7 @@ import { Country } from "../models/country.model";
 import { User } from "../models/user.model";
 import UploadFile from "../classes/uploadfile.class";
 import {DEFAULT_PAGE_SIZE, IMG_USERS_PATH} from "../globals/environment.global";
+import {Pagination} from "../classes/pagination.class";
 
 
 const router = Router();
@@ -218,12 +219,13 @@ router.get('/community/members', [log_request, auth, validated], async (req:Requ
         mensaje: "Comunidad no encontrada"
     });
 
-    // Calcular total de usuarios y páginas
+    // Calcular total de usuarios y paginar resultado
     const totalUsers = await User.countDocuments({'comunidad._id': community._id});
-    const totalPages = await Math.ceil(totalUsers / pageSize);
-    if (pageNumber > totalPages ) {
-        pageNumber = totalPages;
-    }
+    const pagination = await new Pagination(totalUsers,pageNumber, pageSize).getPagination();
+
+    // Actualiza page number de acuerdo a la paginación
+    pageNumber = pagination.currentPage;
+
 
     const users = await User.find({'comunidad._id': community._id})
         .skip((pageNumber - 1) * pageSize)
@@ -238,11 +240,7 @@ router.get('/community/members', [log_request, auth, validated], async (req:Requ
         ok: true,
         community,
         users: {
-            pagination: {
-                actual_page: pageNumber,
-                total_pages: totalPages
-            },
-            total_users: totalUsers,
+            pagination: pagination,
             users
         }
     });
