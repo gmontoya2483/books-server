@@ -14,6 +14,9 @@ import communities from "../routes/community.route"
 import me from "../routes/me.route"
 import me_following from "../routes/me.following.route"
 import me_follower from "../routes/me.follower.route"
+import me_community from "../routes/me.community.route"
+import me_token from "../routes/me.token.route"
+import me_img from "../routes/me.img.route"
 import img from "../routes/img.route"
 
 
@@ -40,10 +43,12 @@ module.exports = function(server: ServerClass){
     server.app.use('/api/me', me);
     server.app.use('/api/me/following', me_following);
     server.app.use('/api/me/followers', me_follower);
+    server.app.use('/api/me/community', me_community);
+    server.app.use('/api/me/token', me_token);
+    server.app.use('/api/me/img', me_img);
 
 
     server.app.use('/api/img', img);
-
 
     // Error Middleware
     server.app.use(error);
