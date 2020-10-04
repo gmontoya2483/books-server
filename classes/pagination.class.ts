@@ -15,7 +15,7 @@ export class Pagination {
 
         const totalPages = await Math.ceil(this.totalRecords / this.pageSize);
         if (this.pageNumber > totalPages) {
-            this.pageNumber = totalPages;
+            this.pageNumber = (totalPages > 0) ? totalPages : 1;
         }
 
         const previousPage = (this.pageNumber - 1 > 0) ? this.pageNumber - 1 : null;

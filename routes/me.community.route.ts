@@ -4,6 +4,7 @@ import {User} from "../models/user.model";
 import logger from "../startup/logger.startup";
 import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
 import {Pagination} from "../classes/pagination.class";
+import {Follow} from "../models/follow.models";
 const auth = require('../middlewares/auth.middleware');
 const log_request = require('../middlewares/log_request.middleware');
 const validated = require('../middlewares/validated.middleware');
@@ -116,25 +117,31 @@ router.get('/members', [log_request, auth, validated], async (req:Request, res: 
     });
 
     // Calcular total de usuarios y paginar resultado
-    const totalUsers = await User.countDocuments({'comunidad._id': community._id});
+    // @ts-ignore
+    const totalUsers = await User.countDocuments({'comunidad._id': community._id, _id: {$ne : req.user._id}});
     const pagination = await new Pagination(totalUsers,pageNumber, pageSize).getPagination();
 
     // Actualiza page number de acuerdo a la paginación
     pageNumber = pagination.currentPage;
 
-    const users = await User.find({'comunidad._id': community._id})
+    // @ts-ignore
+    const users = await User.find({'comunidad._id': community._id, _id: {$ne : req.user._id}})
         .skip((pageNumber - 1) * pageSize)
         .limit(pageSize)
         .sort('nombre apellido').select({ password: 0});
 
+
     // TODO: Buscar por cada usuario si lo estas siguiendo o si es seguidor tuyo
+
+    // @ts-ignore
+    const usersArray = await getFollowerFollowing(users, req.user._id);
 
     return res.json({
         ok: true,
         community,
         users: {
             pagination: pagination,
-            users
+            users: usersArray
         }
     });
 });
@@ -148,6 +155,28 @@ function validateMyCommunity( user: any ){
         comunidadId: Joi.objectId()
     });
     return schema.validate(user);
+}
+
+
+async function getFollowerFollowing(users:any, meId: string) : Promise<any[]> {
+    const usersArray = [];
+    for (let i = 0; i < users.length; i ++){
+
+        //Buscar si el usuario esta siguiendo a "me" (follower = userID, following = me.id)
+        // @ts-ignore
+        const follower = await Follow.findOne({'following': meId, 'follower': users[i]._id})
+            .select({following: 0, follower: 0});
+
+        // Buscar si "me" esta siguiendo al usuario (follower = me.id, following = user.id)
+        // @ts-ignore
+        const following = await Follow.findOne({'following': users[i]._id, 'follower': meId})
+            .select({following: 0, follower: 0});
+
+        // @ts-ignore
+        usersArray.push({... users[i]._doc, follower, following});
+
+    }
+    return usersArray;
 }
 
 export default router;
