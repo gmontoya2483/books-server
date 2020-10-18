@@ -100,6 +100,7 @@ router.get('/members', [log_request, auth, validated], async (req:Request, res: 
 
     let pageNumber = Number(req.query.page) || 1;
     const pageSize = Number(req.query.pageSize) || DEFAULT_PAGE_SIZE;
+    const search = req.query.search || null;
 
     // @ts-ignore
     if (!req.user.comunidad){
@@ -116,22 +117,42 @@ router.get('/members', [log_request, auth, validated], async (req:Request, res: 
         mensaje: "Comunidad no encontrada"
     });
 
+
+    // Generar criterio de busqueda
+    let criteria = {
+        'comunidad._id': community._id,
+        // @ts-ignore
+        _id: {$ne : req.user._id}
+    };
+
+    if (search) {
+        criteria = {
+            ...criteria,
+            // @ts-ignore
+            $or : [
+                {nombre: {$regex:  `.*${search}.*`}},
+                {apellido: {$regex: `.*${search}.*`}}
+                ]
+        }
+    }
+
+
     // Calcular total de usuarios y paginar resultado
     // @ts-ignore
-    const totalUsers = await User.countDocuments({'comunidad._id': community._id, _id: {$ne : req.user._id}});
+    //const totalUsers = await User.countDocuments({'comunidad._id': community._id, _id: {$ne : req.user._id}});
+    const totalUsers = await User.countDocuments(criteria);
     const pagination = await new Pagination(totalUsers,pageNumber, pageSize).getPagination();
 
     // Actualiza page number de acuerdo a la paginación
     pageNumber = pagination.currentPage;
 
-    // @ts-ignore
-    const users = await User.find({'comunidad._id': community._id, _id: {$ne : req.user._id}})
+
+
+    const users = await User.find(criteria)
         .skip((pageNumber - 1) * pageSize)
         .limit(pageSize)
         .sort('nombre apellido').select({ password: 0});
 
-
-    // TODO: Buscar por cada usuario si lo estas siguiendo o si es seguidor tuyo
 
     // @ts-ignore
     const usersArray = await getFollowerFollowing(users, req.user._id);

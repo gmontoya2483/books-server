@@ -79,6 +79,7 @@ router.post('/', [log_request, auth, validated], async (req:Request, res: Respon
         });
     }
 
+    // TODO agregar la camunidad para filtrar por comunidad y evitar traer usuario de otras comunidades si se cambia de comunidad.
 
      follow = new Follow({
         follower: me._id,
