@@ -139,7 +139,6 @@ router.get('/members', [log_request, auth, validated], async (req:Request, res: 
 
     // Calcular total de usuarios y paginar resultado
     // @ts-ignore
-    //const totalUsers = await User.countDocuments({'comunidad._id': community._id, _id: {$ne : req.user._id}});
     const totalUsers = await User.countDocuments(criteria);
     const pagination = await new Pagination(totalUsers,pageNumber, pageSize).getPagination();
 
@@ -178,6 +177,11 @@ function validateMyCommunity( user: any ){
     return schema.validate(user);
 }
 
+
+/*********************************************************
+ * Función para obtener información si 'me' esta siguiendo
+ * a que usuario y si estos estan siguiendo a 'me'.
+ * *******************************************************/
 
 async function getFollowerFollowing(users:any, meId: string) : Promise<any[]> {
     const usersArray = [];

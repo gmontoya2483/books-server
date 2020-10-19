@@ -2,6 +2,8 @@ import {Request, Response, Router} from "express";
 import {User} from "../models/user.model";
 import {Follow} from "../models/follow.models";
 import _ from "lodash";
+import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
+import {Pagination} from "../classes/pagination.class";
 const auth = require('../middlewares/auth.middleware');
 const log_request = require('../middlewares/log_request.middleware');
 const validated = require('../middlewares/validated.middleware');
@@ -14,6 +16,9 @@ router.get('/', [log_request, auth, validated], async (req:Request, res: Respons
 
     //TODO: Agregar paginación!!
 
+    let pageNumber = Number(req.query.page) || 1;
+    const pageSize = Number(req.query.pageSize) || DEFAULT_PAGE_SIZE;
+
     // @ts-ignore
     const me  = await User.findById(req.user._id).select({password: 0});
     if( !me ){
@@ -23,14 +28,36 @@ router.get('/', [log_request, auth, validated], async (req:Request, res: Respons
         });
     }
 
-    const followers = await Follow.find({'following': me._id})
+
+    // Generar criterio de busqueda
+    let criteria = {
+        'following': me._id
+    };
+
+    // Calcular total de registrios y paginar el resultado
+    const totalFollowers = await Follow.countDocuments(criteria);
+    const pagination = await new Pagination(totalFollowers,pageNumber, pageSize).getPagination();
+
+    // Actualiza page number de acuerdo a la paginación
+    pageNumber = pagination.currentPage;
+
+    // Buscar ususario que siguen a 'me'
+    const followers = await Follow.find(criteria)
+        .skip((pageNumber - 1) * pageSize)
+        .limit(pageSize)
         .select({following: 0})
         .populate('follower', {password: 0});
 
 
+    // @ts-ignore
+    const followerArray = await getFollowing(followers, req.user._id);
+
     return res.json({
         ok: true,
-        followers
+        followers: {
+            pagination: pagination,
+            followers: followerArray
+        }
     });
 
 });
@@ -176,6 +203,29 @@ router.delete('/:id',[log_request, auth, validated], async (req:Request, res: Re
         follower: follow
     })
 });
+
+
+
+/*********************************************************
+ * Función para obtener información si 'me' también sigue al
+ * usuario que lo esta siguiendo.
+ * *******************************************************/
+
+async function getFollowing(followers:any, meId: string) : Promise<any[]> {
+    const usersArray = [];
+    for (let i = 0; i < followers.length; i ++){
+
+        //Buscar si el usuario esta siguiendo a "me" (follower = userID, following = me.id)
+        // @ts-ignore
+        const following = await Follow.findOne({'follower': meId, 'following': followers[i].follower._id})
+            .select({following: 0, follower: 0});
+
+        // @ts-ignore
+        usersArray.push({... followers[i]._doc, following});
+
+    }
+    return usersArray;
+}
 
 
 export default router;

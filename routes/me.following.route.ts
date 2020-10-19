@@ -6,6 +6,8 @@ const log_request = require('../middlewares/log_request.middleware');
 const validated = require('../middlewares/validated.middleware');
 import logger from "../startup/logger.startup";
 import {Country} from "../models/country.model";
+import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
+import {Pagination} from "../classes/pagination.class";
 
 const Joi = require('@hapi/joi');
 
@@ -79,8 +81,6 @@ router.post('/', [log_request, auth, validated], async (req:Request, res: Respon
         });
     }
 
-    // TODO agregar la camunidad para filtrar por comunidad y evitar traer usuario de otras comunidades si se cambia de comunidad.
-
      follow = new Follow({
         follower: me._id,
         following: following._id
@@ -101,7 +101,8 @@ router.post('/', [log_request, auth, validated], async (req:Request, res: Respon
 // Trae todos los usuarios que estoy siguiendo (follower: me._id)
 router.get('/', [log_request, auth, validated], async (req:Request, res: Response)=>{
 
-    //TODO: Agregar paginación!!
+    let pageNumber = Number(req.query.page) || 1;
+    const pageSize = Number(req.query.pageSize) || DEFAULT_PAGE_SIZE;
 
     // @ts-ignore
     const me  = await User.findById(req.user._id).select({password: 0});
@@ -112,18 +113,40 @@ router.get('/', [log_request, auth, validated], async (req:Request, res: Respons
         });
     }
 
-    const following = await Follow.find({'follower': me._id})
-        .select({follower: 0})
-        .populate('following', {password: 0});
+    // Generar criterio de busqueda
+    let criteria = {
+        'follower': me._id
+    };
 
+    // Calcular total de registrios y paginar el resultado
+    const totalFollowing = await Follow.countDocuments(criteria);
+    const pagination = await new Pagination(totalFollowing,pageNumber, pageSize).getPagination();
+
+    // Actualiza page number de acuerdo a la paginación
+    pageNumber = pagination.currentPage;
+
+    // Buscar usuario que 'me' esta siguiendo
+    const followings = await Follow.find(criteria)
+        .skip((pageNumber - 1) * pageSize)
+        .limit(pageSize)
+        .select({follower: 0})
+        .populate({
+            path: 'following',
+            select: {password: 0}
+        });
+
+    // @ts-ignore
+    const followingArray = await getFollower(followings, req.user._id);
 
     return res.json({
         ok: true,
-        following
+        followings: {
+            pagination: pagination,
+            followings: followingArray
+        }
     });
 
 });
-
 
 
 // trae un usuario al que estoy siguiendo (follower: me._id, following: :id)
@@ -214,5 +237,25 @@ function validateFollowing(following: any) {
     return schema.validate(following);
 }
 
+/*********************************************************
+ * Función para obtener información si el usuario que sigue 'me'
+ *  tambien esta siguiendo a 'me'.
+ * *******************************************************/
+
+async function getFollower(followings:any, meId: string) : Promise<any[]> {
+    const usersArray = [];
+    for (let i = 0; i < followings.length; i ++){
+
+        //Buscar si el usuario esta siguiendo a "me" (follower = userID, following = me.id)
+        // @ts-ignore
+        const follower = await Follow.findOne({'following': meId, 'follower': followings[i].following._id})
+            .select({following: 0, follower: 0});
+
+        // @ts-ignore
+        usersArray.push({... followings[i]._doc, follower});
+
+    }
+    return usersArray;
+}
 
 export default router;
