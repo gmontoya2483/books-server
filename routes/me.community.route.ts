@@ -130,8 +130,8 @@ router.get('/members', [log_request, auth, validated], async (req:Request, res: 
             ...criteria,
             // @ts-ignore
             $or : [
-                {nombre: {$regex:  `.*${search}.*`}},
-                {apellido: {$regex: `.*${search}.*`}}
+                {nombre: {$regex:  `.*${search}.*`, $options:'i'}},
+                {apellido: {$regex: `.*${search}.*`, $options:'i'}}
                 ]
         }
     }

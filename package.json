@@ -43,6 +43,6 @@
     "@types/mongodb": "^3.5.20",
     "@types/mongoose": "^5.7.24",
     "@types/socket.io": "^2.1.8",
-    "nodemon": "^2.0.4"
+    "nodemon": "^2.0.6"
   }
 }
