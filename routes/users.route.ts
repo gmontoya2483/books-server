@@ -108,7 +108,7 @@ router.put('/validateEmail',[log_request, auth], async (req:Request, res: Respon
     if (!user) {
         return res.status(404).json({
             ok: false,
-            mensaje: "No se encntro el usuario"
+            mensaje: "No se encontro el usuario"
         });
     }
 

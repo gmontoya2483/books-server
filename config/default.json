@@ -23,5 +23,8 @@
   "uploads": {
     "IMG_NOT_FOUND_PATH": "../assets/no-img.jpg",
     "IMG_USERS_PATH": "../uploads/users"
+  },
+  "pagination": {
+    "DEFAULT_PAGE_SIZE": 25
   }
 }

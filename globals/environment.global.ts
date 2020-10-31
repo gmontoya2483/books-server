@@ -27,5 +27,8 @@ export const SEND_GRID_FROM_EMAIL: string = config.get('sendGrid.SEND_GRID_FROM_
 export const IMG_NOT_FOUND_PATH: string = config.get('uploads.IMG_NOT_FOUND_PATH');
 export const IMG_USERS_PATH: string = config.get('uploads.IMG_USERS_PATH');
 
+// Pagination
+export const DEFAULT_PAGE_SIZE: number = config.get('pagination.DEFAULT_PAGE_SIZE');
+
 
 
