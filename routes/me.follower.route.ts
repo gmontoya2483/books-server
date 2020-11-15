@@ -119,6 +119,7 @@ router.put('/:id/confirm',[log_request, auth, validated], async (req:Request, re
         });
     }
 
+    // Verificar que el seguidor exista
     const follower  = await User.findById(req.params.id).select({password: 0});
     if( !me ){
         return res.status(404).json({
@@ -142,6 +143,8 @@ router.put('/:id/confirm',[log_request, auth, validated], async (req:Request, re
         .select({following: 0})
         .populate('follower', {password: 0});
 
+
+    // Verificar si solicito seguirte
     if(!follow){
         return res.status(404).json({
             ok: false,

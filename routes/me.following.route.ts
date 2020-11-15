@@ -198,6 +198,7 @@ router.delete('/:id', [log_request, auth, validated], async (req:Request, res: R
         });
     }
 
+    // Verifica si el usuario a dejar de seguir existe
     let following  = await User.findById(req.params.id).select({password: 0});
     if( !following ){
         return res.status(404).json({
@@ -206,7 +207,7 @@ router.delete('/:id', [log_request, auth, validated], async (req:Request, res: R
         });
     }
 
-
+    // Verifica si se esta siguiendo al usuario
     const follow = await Follow.findOneAndDelete({'follower': me._id, 'following': following._id})
         .select({follower: 0}).populate('following', {password: 0});
 

@@ -4,6 +4,9 @@ import cors from 'cors'
 import helmet from 'helmet';
 
 import error from "../middlewares/error.middleware";
+const log_request = require('../middlewares/log_request.middleware');
+const authorized = require('../middlewares/auth.middleware');
+const validated = require('../middlewares/validated.middleware');
 
 import mensajes from "../routes/example.route";
 import users from "../routes/users.route"
@@ -35,9 +38,9 @@ module.exports = function(server: ServerClass){
     // Routes
     server.app.use('/api/example', mensajes);
     server.app.use('/api/users', users);
-    server.app.use('/api/auth', auth);
+    server.app.use('/api/auth', [log_request], auth);
     server.app.use('/api/uploads', uploads);
-    server.app.use('/api/countries', countries);
+    server.app.use('/api/countries',[log_request, authorized, validated] ,countries);
     server.app.use('/api/communities', communities);
 
     server.app.use('/api/me', me);

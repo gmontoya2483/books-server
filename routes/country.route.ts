@@ -1,9 +1,7 @@
-import Joi from "@hapi/joi";
+
 import {Request, Response, Router} from "express";
-const auth = require('../middlewares/auth.middleware');
-const log_request = require('../middlewares/log_request.middleware');
 const admin = require('../middlewares/admin.middleware');
-const validated = require('../middlewares/validated.middleware');
+const body_validation = require('../middlewares/body_request_validation/country.body.validation.middleware');
 import { Country } from '../models/country.model';
 import {Community} from "../models/community.model";
 
@@ -16,14 +14,14 @@ const Fawn = require('fawn');
 Fawn.init(mongoose, 'trxCountryCommunitiesUsers');
 
 
-router.get('/', [log_request, auth, validated], async (req: Request, res: Response) => {
+router.get('/', [], async (req: Request, res: Response) => {
     const countries = await Country.find().sort('name');
     res.json({ok: true,
         countries });
 });
 
 
-router.get('/:id', [log_request, auth, validated], async(req: Request, res: Response) => {
+router.get('/:id', [], async(req: Request, res: Response) => {
     const country = await Country.findById(req.params.id);
     if(!country) {
         return res.status(404).json({
@@ -37,9 +35,7 @@ router.get('/:id', [log_request, auth, validated], async(req: Request, res: Resp
     });
 });
 
-
-
-router.get('/:id/communities', [log_request, auth, validated], async(req: Request, res: Response) => {
+router.get('/:id/communities', [], async(req: Request, res: Response) => {
     const country = await Country.findById(req.params.id);
     if(!country) {
         return res.status(404).json({
@@ -61,12 +57,7 @@ router.get('/:id/communities', [log_request, auth, validated], async(req: Reques
 
 
 
-router.post('/', [log_request, auth, validated, admin ], async (req:Request, res: Response) => {
-
-    const result = validateCountry(req.body);
-    if  (result.error) return res.status(400)
-        .json({ok: false,
-            message: result.error.details[0].message.replace(/['"]+/g, "")});
+router.post('/', [admin, body_validation], async (req:Request, res: Response) => {
 
     const country = new Country({name: req.body.name});
     await country.save();
@@ -78,7 +69,7 @@ router.post('/', [log_request, auth, validated, admin ], async (req:Request, res
 
 
 
-router.delete('/:id', [log_request, auth, validated, admin], async (req:Request, res: Response) => {
+router.delete('/:id', [admin], async (req:Request, res: Response) => {
 
     const community = await Community.findOne({'country._id': req.params.id}).select({name: 1});
     if (community) return res.status(400).json({
@@ -101,15 +92,7 @@ router.delete('/:id', [log_request, auth, validated, admin], async (req:Request,
 });
 
 
-
-
-router.put('/:id', [log_request, auth, validated, admin],async(req: Request, res: Response) => {
-    const result = validateCountry(req.body);
-    if (result.error) return res.status(400)
-        .json({
-            ok: false,
-            mensaje: (result.error.details[0].message).replace(/['"]+/g, "")
-        });
+router.put('/:id', [admin, body_validation],async(req: Request, res: Response) => {
 
     let country = await Country.findById(req.params.id);
     if (!country) return res.status(404).json({
@@ -149,21 +132,5 @@ router.put('/:id', [log_request, auth, validated, admin],async(req: Request, res
             mensaje: `Internal Server Error.`});
     }
 });
-
-
-/*********************************************************
- * Validaciones country recibido por http
- * *******************************************************/
-
-
-function validateCountry(country: any) {
-    const schema = Joi.object().keys({
-        name: Joi.string()
-            .min(5)
-            .max(50)
-            .required()
-    });
-    return schema.validate(country);
-}
 
 export default router;
