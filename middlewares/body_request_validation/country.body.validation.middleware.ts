@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import Joi from "@hapi/joi";
 
-module.exports = async function auth  (req: Request , res: Response, next: NextFunction){
+module.exports = async function bodyValidation  (req: Request , res: Response, next: NextFunction){
 
     const result = validateCountry(req.body);
     if (result.error) return res.status(400)
