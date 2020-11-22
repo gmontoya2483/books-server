@@ -40,8 +40,8 @@ module.exports = function(server: ServerClass){
     server.app.use('/api/users', users);
     server.app.use('/api/auth', [log_request], auth);
     server.app.use('/api/uploads', uploads);
-    server.app.use('/api/countries',[log_request, authorized, validated] ,countries);
-    server.app.use('/api/communities', communities);
+    server.app.use('/api/countries', [log_request, authorized, validated] ,countries);
+    server.app.use('/api/communities', [log_request, authorized, validated], communities);
 
     server.app.use('/api/me', me);
     server.app.use('/api/me/following', me_following);
