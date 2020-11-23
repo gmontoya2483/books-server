@@ -5,23 +5,15 @@ import logger from "../startup/logger.startup";
 import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
 import {Pagination} from "../classes/pagination.class";
 import {Follow} from "../models/follow.models";
-const auth = require('../middlewares/auth.middleware');
-const log_request = require('../middlewares/log_request.middleware');
-const validated = require('../middlewares/validated.middleware');
+const body_validation = require('../middlewares/body_request_validation/me.community.body.validation.middleware');
+
+
 
 const Joi = require('@hapi/joi');
 
 const router = Router();
 
-router.put('/', [log_request, auth, validated], async (req:Request, res: Response)=> {
-
-    // Validar request body
-    const result = validateMyCommunity(req.body);
-    if  (result.error) return res.status(400)
-        .json({
-            ok: false,
-            mensaje: result.error.details[0].message.replace(/['"]+/g, "")
-        });
+router.put('/', [body_validation], async (req:Request, res: Response)=> {
 
     // Obtener la comunidad
     let community: any = null;
@@ -96,7 +88,7 @@ router.put('/', [log_request, auth, validated], async (req:Request, res: Respons
 });
 
 
-router.get('/members', [log_request, auth, validated], async (req:Request, res: Response)=> {
+router.get('/members', [], async (req:Request, res: Response)=> {
 
     let pageNumber = Number(req.query.page) || 1;
     const pageSize = Number(req.query.pageSize) || DEFAULT_PAGE_SIZE;
@@ -165,17 +157,6 @@ router.get('/members', [log_request, auth, validated], async (req:Request, res: 
         }
     });
 });
-
-/*********************************************************
- * Validaciones usuario recibido por http
- * *******************************************************/
-
-function validateMyCommunity( user: any ){
-    const schema = Joi.object({
-        comunidadId: Joi.objectId()
-    });
-    return schema.validate(user);
-}
 
 
 /*********************************************************

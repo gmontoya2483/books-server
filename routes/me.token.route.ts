@@ -1,12 +1,9 @@
 import {Request, Response, Router} from "express";
 import {User} from "../models/user.model";
-const auth = require('../middlewares/auth.middleware');
-const log_request = require('../middlewares/log_request.middleware');
-const validated = require('../middlewares/validated.middleware');
 
 const router = Router();
 
-router.post('/', [log_request, auth, validated], async (req:Request, res: Response)=>{
+router.post('/', [], async (req:Request, res: Response)=>{
     // @ts-ignore
     const me  = await User.findById(req.user._id).select({password: 0});
     if( !me ){

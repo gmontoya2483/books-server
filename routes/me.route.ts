@@ -2,17 +2,18 @@ import logger from "../startup/logger.startup";
 
 const Joi = require('@hapi/joi');
 import {Request, Response, Router} from "express";
-const auth = require('../middlewares/auth.middleware');
-const log_request = require('../middlewares/log_request.middleware');
-const validated = require('../middlewares/validated.middleware');
+// const auth = require('../middlewares/auth.middleware');
+// const log_request = require('../middlewares/log_request.middleware');
+// const validated = require('../middlewares/validated.middleware');
 import { Community } from '../models/community.model';
 import { Country } from "../models/country.model";
 import { User } from "../models/user.model";
+const body_validation = require('../middlewares/body_request_validation/me.body.validation.middleware');
 
 
 const router = Router();
 
-router.get('/', [log_request, auth, validated], async (req:Request, res: Response)=>{
+router.get('/', [], async (req:Request, res: Response)=>{
 
     // @ts-ignore
     const me  = await User.findById(req.user._id).select({password: 0});
@@ -30,15 +31,7 @@ router.get('/', [log_request, auth, validated], async (req:Request, res: Respons
 
 });
 
-router.put('/', [log_request, auth, validated], async (req:Request, res: Response)=> {
-
-    // Validar request body
-    const result = validateMe(req.body);
-    if  (result.error) return res.status(400)
-        .json({
-            ok: false,
-            mensaje: result.error.details[0].message.replace(/['"]+/g, "")
-        });
+router.put('/', [body_validation], async (req:Request, res: Response)=> {
 
     // Obtener el pais de residencia
     let country: any;
@@ -108,21 +101,5 @@ router.put('/', [log_request, auth, validated], async (req:Request, res: Respons
         token: token
     });
 });
-
-
-/*********************************************************
- * Validaciones usuario recibido por http
- * *******************************************************/
-
-
-function validateMe( user: any ) {
-    const schema = Joi.object({
-        nombre: Joi.string().min(5).max(255).required(),
-        apellido: Joi.string().min(5).max(255).required(),
-        paisResidenciaId: Joi.objectId()
-    });
-    return schema.validate(user);
-}
-
 
 export default router;

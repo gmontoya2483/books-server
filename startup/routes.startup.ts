@@ -43,20 +43,17 @@ module.exports = function(server: ServerClass){
     server.app.use('/api/countries', [log_request, authorized, validated] ,countries);
     server.app.use('/api/communities', [log_request, authorized, validated], communities);
 
-    server.app.use('/api/me', me);
+    server.app.use('/api/me', [log_request, authorized, validated], me);
     server.app.use('/api/me/following', me_following);
     server.app.use('/api/me/followers', me_follower);
-    server.app.use('/api/me/community', me_community);
-    server.app.use('/api/me/token', me_token);
-    server.app.use('/api/me/img', me_img);
+    server.app.use('/api/me/community',[log_request, authorized, validated], me_community);
+    server.app.use('/api/me/token',[log_request, authorized, validated], me_token);
+    server.app.use('/api/me/img', [log_request, authorized, validated], me_img);
 
 
     server.app.use('/api/img', img);
 
     // Error Middleware
     server.app.use(error);
-
-
-
 
 }
