@@ -1,27 +1,14 @@
 import {Request, Response, Router} from "express";
 import {User} from "../models/user.model";
 import {Follow} from "../models/follow.models";
-const auth = require('../middlewares/auth.middleware');
-const log_request = require('../middlewares/log_request.middleware');
-const validated = require('../middlewares/validated.middleware');
-import logger from "../startup/logger.startup";
-import {Country} from "../models/country.model";
 import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
 import {Pagination} from "../classes/pagination.class";
-
-const Joi = require('@hapi/joi');
+const body_validation = require('../middlewares/body_request_validation/me.following.body.validation.middleware');
 
 const router = Router();
 
 
-router.post('/', [log_request, auth, validated], async (req:Request, res: Response)=>{
-    const result = validateFollowing(req.body);
-    if  (result.error) return res.status(400)
-        .json({
-            ok: false,
-            mensaje: result.error.details[0].message.replace(/['"]+/g, "")
-        });
-
+router.post('/', [body_validation], async (req:Request, res: Response)=>{
 
     // Verifica que exista el usuario actual
     // @ts-ignore
@@ -45,7 +32,7 @@ router.post('/', [log_request, auth, validated], async (req:Request, res: Respon
 
     // Verificar que no se solicite seguir a si mismo
     if (me._id.equals(following._id)) {
-        return res.status(404).json({
+        return res.status(400).json({
             ok: false,
             mensaje: "El usuario no se puede seguir a si mismo"
         });
@@ -99,7 +86,7 @@ router.post('/', [log_request, auth, validated], async (req:Request, res: Respon
 
 
 // Trae todos los usuarios que estoy siguiendo (follower: me._id)
-router.get('/', [log_request, auth, validated], async (req:Request, res: Response)=>{
+router.get('/', [], async (req:Request, res: Response)=>{
 
     let pageNumber = Number(req.query.page) || 1;
     const pageSize = Number(req.query.pageSize) || DEFAULT_PAGE_SIZE;
@@ -150,7 +137,7 @@ router.get('/', [log_request, auth, validated], async (req:Request, res: Respons
 
 
 // trae un usuario al que estoy siguiendo (follower: me._id, following: :id)
-router.get('/:id', [log_request, auth, validated], async (req:Request, res: Response)=>{
+router.get('/:id', [], async (req:Request, res: Response)=>{
 
     // @ts-ignore
     const me  = await User.findById(req.user._id).select({password: 0});
@@ -187,7 +174,7 @@ router.get('/:id', [log_request, auth, validated], async (req:Request, res: Resp
 });
 
 // dejar de seguir a alguien (follower: me._id, folloing: :id)
-router.delete('/:id', [log_request, auth, validated], async (req:Request, res: Response)=>{
+router.delete('/:id', [], async (req:Request, res: Response)=>{
 
     // @ts-ignore
     const me = await User.findById(req.user._id).select({password: 0});
@@ -226,17 +213,6 @@ router.delete('/:id', [log_request, auth, validated], async (req:Request, res: R
 
 });
 
-
-/*********************************************************
- * Validaciones following recibido por http
- * *******************************************************/
-
-function validateFollowing(following: any) {
-    const schema = Joi.object({
-        followingUserId: Joi.objectId().required()
-    });
-    return schema.validate(following);
-}
 
 /*********************************************************
  * Función para obtener información si el usuario que sigue 'me'

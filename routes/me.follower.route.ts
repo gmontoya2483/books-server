@@ -4,17 +4,12 @@ import {Follow} from "../models/follow.models";
 import _ from "lodash";
 import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
 import {Pagination} from "../classes/pagination.class";
-const auth = require('../middlewares/auth.middleware');
-const log_request = require('../middlewares/log_request.middleware');
-const validated = require('../middlewares/validated.middleware');
 
 const router = Router();
 
 
 // Trae todos los usuarios que me estan siguiendo (following: me._id)
-router.get('/', [log_request, auth, validated], async (req:Request, res: Response)=>{
-
-    //TODO: Agregar paginación!!
+router.get('/', [], async (req:Request, res: Response)=>{
 
     let pageNumber = Number(req.query.page) || 1;
     const pageSize = Number(req.query.pageSize) || DEFAULT_PAGE_SIZE;
@@ -64,7 +59,7 @@ router.get('/', [log_request, auth, validated], async (req:Request, res: Respons
 
 
 
-router.get('/:id',[log_request, auth, validated], async (req:Request, res: Response)=>{
+router.get('/:id',[], async (req:Request, res: Response)=>{
 
     // @ts-ignore
     const me  = await User.findById(req.user._id).select({password: 0});
@@ -76,7 +71,7 @@ router.get('/:id',[log_request, auth, validated], async (req:Request, res: Respo
     }
 
     const follower  = await User.findById(req.params.id).select({password: 0});
-    if( !me ){
+    if( !follower ){
         return res.status(404).json({
             ok: false,
             mensaje: "Seguidor no encontrado"
@@ -108,7 +103,7 @@ router.get('/:id',[log_request, auth, validated], async (req:Request, res: Respo
 
 
 // Confirmar un seguidor
-router.put('/:id/confirm',[log_request, auth, validated], async (req:Request, res: Response)=>{
+router.put('/:id/confirm',[], async (req:Request, res: Response)=>{
 
     // @ts-ignore
     const me  = await User.findById(req.user._id).select({password: 0});
@@ -121,7 +116,7 @@ router.put('/:id/confirm',[log_request, auth, validated], async (req:Request, re
 
     // Verificar que el seguidor exista
     const follower  = await User.findById(req.params.id).select({password: 0});
-    if( !me ){
+    if( !follower ){
         return res.status(404).json({
             ok: false,
             mensaje: "Seguidor no encontrado"
@@ -164,7 +159,7 @@ router.put('/:id/confirm',[log_request, auth, validated], async (req:Request, re
 
 
 // Borrar un seguidor
-router.delete('/:id',[log_request, auth, validated], async (req:Request, res: Response)=>{
+router.delete('/:id',[], async (req:Request, res: Response)=>{
 
     // @ts-ignore
     const me  = await User.findById(req.user._id).select({password: 0});
@@ -176,7 +171,7 @@ router.delete('/:id',[log_request, auth, validated], async (req:Request, res: Re
     }
 
     const follower  = await User.findById(req.params.id).select({password: 0});
-    if( !me ){
+    if( !follower ){
         return res.status(404).json({
             ok: false,
             mensaje: "Seguidor no encontrado"
