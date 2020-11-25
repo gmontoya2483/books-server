@@ -1,5 +1,4 @@
 import {Request, Response, Router} from "express";
-import bcrypt from 'bcrypt';
 import Security from "../classes/security.class"
 import { User } from '../models/user.model';
 import _ from 'lodash';
@@ -9,12 +8,15 @@ import logger from "../startup/logger.startup";
 import {Notification} from "../classes/notification.class";
 import {SendGrid} from "../classes/sendgrid.class";
 const auth = require('../middlewares/auth.middleware');
-const log_request = require('../middlewares/log_request.middleware');
+// const log_request = require('../middlewares/log_request.middleware');
+const user_body_validation = require('../middlewares/body_request_validation/users.body.validation.middleware');
+const user_change_password_body_validation = require('../middlewares/body_request_validation/users.change_password.body.validation.middleware');
+const user_change_password_request_body_validation = require('../middlewares/body_request_validation/users.change_password_request.body.validation.middleware');
 
 
 const router = Router();
 
-router.get('/', [log_request, auth], (req:Request, res: Response)=>{
+router.get('/', [auth], (req:Request, res: Response)=>{
     res.json({
         ok: true,
         pagina_actual: 1,
@@ -43,15 +45,7 @@ router.get('/', [log_request, auth], (req:Request, res: Response)=>{
 
 
 
-router.post('/', [log_request], async (req:Request, res: Response)=>{
-
-    // Validar request body
-    const result = validateUser(req.body);
-    if  (result.error) return res.status(400)
-        .json({
-            ok: false,
-            mensaje: result.error.details[0].message.replace(/['"]+/g, "")
-        });
+router.post('/', [user_body_validation], async (req:Request, res: Response)=>{
 
     // Validar email no esta duplicado
     let user = await User.findOne({email: req.body.email});
@@ -93,7 +87,7 @@ router.post('/', [log_request], async (req:Request, res: Response)=>{
 
 
 
-router.put('/validateEmail',[log_request, auth], async (req:Request, res: Response) => {
+router.put('/validateEmail',[auth], async (req:Request, res: Response) => {
 
     // @ts-ignore
     const user = await User.findByIdAndUpdate(req.user._id, {
@@ -124,13 +118,7 @@ router.put('/validateEmail',[log_request, auth], async (req:Request, res: Respon
 });
 
 
-router.post('/changePassword', [log_request], async (req: Request, res: Response)=>{
-    const result = validateChangePasswordRequest(req.body);
-    if  (result.error) return res.status(400)
-        .json({
-            ok: false,
-            mensaje: result.error.details[0].message.replace(/['"]+/g, "")
-        });
+router.post('/changePassword', [user_change_password_request_body_validation], async (req: Request, res: Response)=>{
 
     // Validar email existe
     let user = await User.findOne({email: req.body.email});
@@ -160,14 +148,7 @@ router.post('/changePassword', [log_request], async (req: Request, res: Response
 });
 
 
-router.put('/changePassword', [log_request, auth], async (req: Request, res: Response)=>{
-    const result = validateChangePassword(req.body);
-    if  (result.error) return res.status(400)
-        .json({
-            ok: false,
-            mensaje: result.error.details[0].message.replace(/['"]+/g, "")
-        });
-
+router.put('/changePassword', [auth, user_change_password_body_validation], async (req: Request, res: Response)=>{
 
     // @ts-ignore
     const user = await User.findByIdAndUpdate(req.user._id, {
@@ -192,49 +173,5 @@ router.put('/changePassword', [log_request, auth], async (req: Request, res: Res
     })
 
 });
-
-
-/*********************************************************
- * Validaciones usuario recibido por http
- * *******************************************************/
-
-const passwordComplexityOptions = {
-    min: 8,
-    max: 30,
-    lowerCase: 1,
-    upperCase: 1,
-    numeric: 1,
-    symbol: 1,
-    requirementCount: 4,
-};
-
-function validateUser( user: any ) {
-    const schema = Joi.object({
-        email: Joi.string().min(8).max(30).required().email(),
-        nombre: Joi.string().min(5).max(255).required(),
-        apellido: Joi.string().min(5).max(255).required(),
-        // @ts-ignore
-        password: passwordComplexity(passwordComplexityOptions).required(),
-        isValidated: Joi.boolean(),
-        isAdmin: Joi.boolean()
-    });
-    return schema.validate(user);
-}
-
-
-function validateChangePassword( body : any) {
-    const schema = Joi.object({
-        // @ts-ignore
-        password: passwordComplexity(passwordComplexityOptions).required()
-    });
-    return schema.validate(body);
-}
-
-function validateChangePasswordRequest( body : any) {
-    const schema = Joi.object({
-        email: Joi.string().min(8).max(30).required().email()
-    });
-    return schema.validate(body);
-}
 
 export default router;

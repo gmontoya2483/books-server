@@ -37,7 +37,7 @@ module.exports = function(server: ServerClass){
 
     // Routes
     server.app.use('/api/example', mensajes);
-    server.app.use('/api/users', users);
+    server.app.use('/api/users', [log_request], users);
     server.app.use('/api/auth', [log_request], auth);
     server.app.use('/api/uploads', uploads);
     server.app.use('/api/countries', [log_request, authorized, validated] ,countries);
