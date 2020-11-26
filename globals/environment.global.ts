@@ -30,5 +30,8 @@ export const IMG_USERS_PATH: string = config.get('uploads.IMG_USERS_PATH');
 // Pagination
 export const DEFAULT_PAGE_SIZE: number = config.get('pagination.DEFAULT_PAGE_SIZE');
 
+// Password passwordComplexityOptions
+export const PASSWORD_COMPLEXITY_OPTIONS = config.get('passwordComplexityOptions');
+
 
 

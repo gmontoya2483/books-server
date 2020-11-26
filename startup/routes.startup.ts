@@ -4,6 +4,9 @@ import cors from 'cors'
 import helmet from 'helmet';
 
 import error from "../middlewares/error.middleware";
+const log_request = require('../middlewares/log_request.middleware');
+const authorized = require('../middlewares/auth.middleware');
+const validated = require('../middlewares/validated.middleware');
 
 import mensajes from "../routes/example.route";
 import users from "../routes/users.route"
@@ -34,26 +37,23 @@ module.exports = function(server: ServerClass){
 
     // Routes
     server.app.use('/api/example', mensajes);
-    server.app.use('/api/users', users);
-    server.app.use('/api/auth', auth);
+    server.app.use('/api/users', [log_request], users);
+    server.app.use('/api/auth', [log_request], auth);
     server.app.use('/api/uploads', uploads);
-    server.app.use('/api/countries', countries);
-    server.app.use('/api/communities', communities);
+    server.app.use('/api/countries', [log_request, authorized, validated] ,countries);
+    server.app.use('/api/communities', [log_request, authorized, validated], communities);
 
-    server.app.use('/api/me', me);
-    server.app.use('/api/me/following', me_following);
-    server.app.use('/api/me/followers', me_follower);
-    server.app.use('/api/me/community', me_community);
-    server.app.use('/api/me/token', me_token);
-    server.app.use('/api/me/img', me_img);
+    server.app.use('/api/me', [log_request, authorized, validated], me);
+    server.app.use('/api/me/following', [log_request, authorized, validated],me_following);
+    server.app.use('/api/me/followers', [log_request, authorized, validated], me_follower);
+    server.app.use('/api/me/community',[log_request, authorized, validated], me_community);
+    server.app.use('/api/me/token',[log_request, authorized, validated], me_token);
+    server.app.use('/api/me/img', [log_request, authorized, validated], me_img);
 
 
     server.app.use('/api/img', img);
 
     // Error Middleware
     server.app.use(error);
-
-
-
 
 }

@@ -15,7 +15,7 @@ const router = Router();
  * Upload profile img
  *************************************************************/
 
-router.put('/', [fileUpload, log_request, auth, validated], async (req:Request, res: Response)=>{
+router.put('/', [fileUpload], async (req:Request, res: Response)=>{
 
     // @ts-ignore
     const meId = req.user._id;
