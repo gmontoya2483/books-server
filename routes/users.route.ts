@@ -2,13 +2,11 @@ import {Request, Response, Router} from "express";
 import Security from "../classes/security.class"
 import { User } from '../models/user.model';
 import _ from 'lodash';
-const Joi = require('@hapi/joi');
-import passwordComplexity from "joi-password-complexity";
+
 import logger from "../startup/logger.startup";
 import {Notification} from "../classes/notification.class";
 import {SendGrid} from "../classes/sendgrid.class";
 const auth = require('../middlewares/auth.middleware');
-// const log_request = require('../middlewares/log_request.middleware');
 const user_body_validation = require('../middlewares/body_request_validation/users.body.validation.middleware');
 const user_change_password_body_validation = require('../middlewares/body_request_validation/users.change_password.body.validation.middleware');
 const user_change_password_request_body_validation = require('../middlewares/body_request_validation/users.change_password_request.body.validation.middleware');

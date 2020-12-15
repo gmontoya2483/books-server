@@ -1,6 +1,6 @@
 import {User} from "../models/user.model";
 import {Request, Response, Router} from "express";
-const admin = require('../middlewares/admin.middleware');
+import {isAdmin} from "../middlewares/admin.middleware"
 const new_community_body_validation = require('../middlewares/body_request_validation/community.new.body.validation.middleware');
 const update_community_body_validation = require('../middlewares/body_request_validation/community.update.body.validation.middleware');
 import { Community } from '../models/community.model';
@@ -44,7 +44,7 @@ router.get('/:id', [], async(req: Request, res: Response) => {
 });
 
 
-router.post('/', [admin, new_community_body_validation], async (req: Request, res: Response) => {
+router.post('/', [isAdmin, new_community_body_validation], async (req: Request, res: Response) => {
 
     const country = await Country.findById(req.body.countryId).select({__v: 0});
     if (!country) return res.status(400).json({
@@ -68,7 +68,7 @@ router.post('/', [admin, new_community_body_validation], async (req: Request, re
 });
 
 
-router.delete('/:id', [admin], async (req: Request, res: Response) => {
+router.delete('/:id', [isAdmin], async (req: Request, res: Response) => {
 
     const user = await User.findOne({'comunidad._id':req.params.id})
     if (user) return res.status(400).json({
@@ -92,7 +92,7 @@ router.delete('/:id', [admin], async (req: Request, res: Response) => {
 });
 
 
-router.put('/:id', [admin, update_community_body_validation], async(req: Request, res: Response) => {
+router.put('/:id', [isAdmin, update_community_body_validation], async(req: Request, res: Response) => {
 
     let community = await Community.findById(req.params.id);
     if (!community) return res.status(404).json({

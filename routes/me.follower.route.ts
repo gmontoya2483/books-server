@@ -1,7 +1,6 @@
 import {Request, Response, Router} from "express";
 import {User} from "../models/user.model";
 import {Follow} from "../models/follow.models";
-import _ from "lodash";
 import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
 import {Pagination} from "../classes/pagination.class";
 

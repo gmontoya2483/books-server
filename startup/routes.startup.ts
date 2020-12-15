@@ -20,6 +20,7 @@ import me_follower from "../routes/me.follower.route"
 import me_community from "../routes/me.community.route"
 import me_token from "../routes/me.token.route"
 import me_img from "../routes/me.img.route"
+import genre from "../routes/genre.routes"
 import img from "../routes/img.route"
 
 
@@ -49,6 +50,9 @@ module.exports = function(server: ServerClass){
     server.app.use('/api/me/community',[log_request, authorized, validated], me_community);
     server.app.use('/api/me/token',[log_request, authorized, validated], me_token);
     server.app.use('/api/me/img', [log_request, authorized, validated], me_img);
+    server.app.use('/api/genres', [log_request, authorized, validated], genre);
+
+
 
 
     server.app.use('/api/img', img);

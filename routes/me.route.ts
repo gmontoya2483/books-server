@@ -1,10 +1,5 @@
 import logger from "../startup/logger.startup";
-
-const Joi = require('@hapi/joi');
 import {Request, Response, Router} from "express";
-// const auth = require('../middlewares/auth.middleware');
-// const log_request = require('../middlewares/log_request.middleware');
-// const validated = require('../middlewares/validated.middleware');
 import { Community } from '../models/community.model';
 import { Country } from "../models/country.model";
 import { User } from "../models/user.model";
