@@ -13,9 +13,17 @@ const communitySchema = new mongoose.Schema({
         type: countrySchema,
         required: true
     },
-    createdDateTime: {
+    dateTimeCreated: {
         type: Date,
         default: Date.now
+    },
+    dateTimeUpdated: {
+        type: Date,
+        default: Date.now
+    },
+    isDeleted: {
+        value: {type: Boolean, default: false},
+        deletedDateTime: {type: Date, default: null}
     }
 })
 
