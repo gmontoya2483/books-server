@@ -1,5 +1,7 @@
 import {INewGenre, IServiceResponse, IUpdateGenre} from "../interfaces/genre.interfaces";
 import {Genre} from "../models/genre.model";
+import {IDeleteAuthor} from "../interfaces/author.interfaces";
+import {Author} from "../models/author.model";
 
 export abstract class GenreService {
 
@@ -33,8 +35,26 @@ export abstract class GenreService {
     }
 
 
-    public static async getAllGenres(): Promise<IServiceResponse> {
-        const genres = await Genre.find();
+    public static async getAllGenres(search: any= null, showDeleted: boolean = false): Promise<IServiceResponse> {
+
+        // Generat criterio de búsqueda
+        let criteria = {};
+        if(search){
+            criteria = {
+                ...criteria,
+                name: {$regex:  `.*${search}.*`, $options:'i'},
+            }
+        }
+
+        // Verificar si se muestran los marcados como borrados
+        if (!showDeleted){
+            criteria = {
+                ... criteria,
+                'isDeleted.value': false
+            }
+        }
+
+        const genres = await Genre.find(criteria).sort('name');
         const total = genres.length;
         return {
             status: 200,
@@ -48,6 +68,9 @@ export abstract class GenreService {
     }
 
     public static async deleteGenre(genreId: string): Promise<IServiceResponse> {
+
+        if (this.hasBooks(genreId)) return  this.BadRequestGenreMessage();
+
         const genre: any = await Genre.findByIdAndDelete(genreId);
 
         if (!genre) return this.notFoundGenreMessage();
@@ -64,7 +87,41 @@ export abstract class GenreService {
 
     }
 
+
+    public static async setDeleted (genreId: string, {isDeleted}: IDeleteAuthor): Promise<IServiceResponse>{
+
+        const deleted = (isDeleted) ? {value: true, deletedDateTime: Date.now()}
+            : {value: false, validatedDateTime: null};
+
+        const genre = await Genre.findByIdAndUpdate(genreId, {
+            $set: {
+                isDeleted: deleted,
+                dateTimeUpdated: Date.now()
+            }
+        }, {new: true});
+
+        if (!genre) return this.notFoundGenreMessage();
+
+        const message = (isDeleted) ? `El género ha sido marcado como eliminado`
+            : `El género ha sido desmarcado como eliminado`
+
+        return {
+            status: 200,
+            response: {
+                ok: true,
+                mensaje: message,
+                genre
+            }
+
+        };
+
+    }
+
+
+
     public static async updateGenre (genreId: string, {name}: IUpdateGenre): Promise<IServiceResponse>{
+
+        //TODO: transaccion para modificar los libros y los ejemplares
         const genre = await Genre.findByIdAndUpdate(genreId, {
             $set: {
                 name,
@@ -78,7 +135,7 @@ export abstract class GenreService {
             status: 200,
             response: {
                 ok: true,
-                mensaje: `El género  ha sido eliminado`,
+                mensaje: `El género ha sido modificado`,
                 genre
             }
 
@@ -88,12 +145,30 @@ export abstract class GenreService {
     }
 
 
-    private static notFoundGenreMessage(): IServiceResponse {
+    private static hasBooks(genreId: string): Boolean {
+
+        // TODO: agregar lógica para buscar un libro del autor devolver true si encuntra un libro,
+        //  devolver false si es null
+
+        return false;
+    }
+
+    private static notFoundGenreMessage(mensaje: string = "Género no encontrado"): IServiceResponse {
         return {
             status: 404,
             response: {
                 ok: false,
-                mensaje: "Género no encontrado"
+                mensaje
+            }
+        };
+    }
+
+    private static BadRequestGenreMessage(mensaje: string = `El género tiene libros asociados`): IServiceResponse {
+        return {
+            status: 400,
+            response: {
+                ok: false,
+                mensaje
             }
         };
     }

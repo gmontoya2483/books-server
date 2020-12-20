@@ -1,10 +1,16 @@
 import mongoose, {Schema } from 'mongoose';
 
-export const genreSchema = new mongoose.Schema({
+export const authorSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
-        minlength: 5,
+        minlength: 3,
+        maxlength: 50
+    },
+    lastName: {
+        type: String,
+        required: true,
+        minlength: 3,
         maxlength: 50
     },
     dateTimeCreated: {
@@ -22,4 +28,4 @@ export const genreSchema = new mongoose.Schema({
 });
 
 //Country Model Class
-export const Genre = mongoose.model('Genre', genreSchema);
+export const Author = mongoose.model('Author', authorSchema);

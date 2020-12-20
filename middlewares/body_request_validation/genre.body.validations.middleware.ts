@@ -18,3 +18,12 @@ export const  validateUpdateGenre = function (req: Request, res: Response, next:
         })
         : next();
 }
+
+export const  validateDeleteGenre = function (req: Request, res: Response, next: NextFunction) {
+    const { error, value } = schemas.delete.validate(req.body);
+    error ? res.status(422).json({
+            ok: false,
+            message: error.details[0].message.replace(/['"]+/g, "")
+        })
+        : next();
+}
