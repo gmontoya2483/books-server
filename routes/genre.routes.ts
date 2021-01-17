@@ -12,6 +12,8 @@ const router = Router();
 router.get('/', [], async (req:Request, res: Response)=>{
     const search = req.query.search || null;
     const showDeleted  = req.query.showDeleted === 'true';
+    console.log(req.query.showDeleted);
+    console.log(showDeleted);
     const returnedResponse = await GenreService.getAllGenres(search, showDeleted);
     return res.status(returnedResponse.status).json(returnedResponse.response);
 });

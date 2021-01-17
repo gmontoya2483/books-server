@@ -91,7 +91,7 @@ export abstract class GenreService {
     public static async setDeleted (genreId: string, {isDeleted}: IDeleteAuthor): Promise<IServiceResponse>{
 
         const deleted = (isDeleted) ? {value: true, deletedDateTime: Date.now()}
-            : {value: false, validatedDateTime: null};
+            : {value: false, deletedDateTime: null};
 
         const genre = await Genre.findByIdAndUpdate(genreId, {
             $set: {

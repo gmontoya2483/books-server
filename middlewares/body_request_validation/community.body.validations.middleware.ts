@@ -5,7 +5,7 @@ export const validateNewCommunity = function  (req: Request, res: Response, next
     const { error, value } = schemas.new.validate(req.body);
     error ? res.status(422).json({
             ok: false,
-            message: error.details[0].message.replace(/['"]+/g, "")
+            mensaje: error.details[0].message.replace(/['"]+/g, "")
         })
         : next();
 }
@@ -14,7 +14,7 @@ export const  validateUpdateCommunity = function (req: Request, res: Response, n
     const { error, value } = schemas.update.validate(req.body);
     error ? res.status(422).json({
             ok: false,
-            message: error.details[0].message.replace(/['"]+/g, "")
+            mensaje: error.details[0].message.replace(/['"]+/g, "")
         })
         : next();
 }
@@ -23,7 +23,7 @@ export const  validateDeleteCommunity = function (req: Request, res: Response, n
     const { error, value } = schemas.delete.validate(req.body);
     error ? res.status(422).json({
             ok: false,
-            message: error.details[0].message.replace(/['"]+/g, "")
+            mensaje: error.details[0].message.replace(/['"]+/g, "")
         })
         : next();
 }

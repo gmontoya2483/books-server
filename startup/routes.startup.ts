@@ -4,12 +4,18 @@ import cors from 'cors'
 import helmet from 'helmet';
 
 import error from "../middlewares/error.middleware";
-const log_request = require('../middlewares/log_request.middleware');
-const authorized = require('../middlewares/auth.middleware');
-const validated = require('../middlewares/validated.middleware');
+import {logRequest} from "../middlewares/log_request.middleware";
+
+//const authorized = require('../middlewares/auth.middleware');
+// const validated = require('../middlewares/validated.middleware');
+import  {isValidated}  from "../middlewares/validated.middleware";
+import {isAuthorized} from "../middlewares/auth.middleware";
+import {isAdmin} from "../middlewares/admin.middleware";
+
 
 import mensajes from "../routes/example.route";
-import users from "../routes/users.route"
+import users from "../routes/user.route";
+import users_admin from "../routes/user.admin.route"
 import auth from "../routes/auth.route"
 import uploads from "../routes/upload.route"
 import countries from "../routes/country.route"
@@ -39,20 +45,21 @@ module.exports = function(server: ServerClass){
 
     // Routes
     server.app.use('/api/example', mensajes);
-    server.app.use('/api/users', [log_request], users);
-    server.app.use('/api/auth', [log_request], auth);
+    server.app.use('/api/users', [logRequest], users);
+    server.app.use('/api/users/admin', [logRequest, isAuthorized, isValidated, isAdmin], users_admin);
+    server.app.use('/api/auth', [logRequest], auth);
     server.app.use('/api/uploads', uploads);
-    server.app.use('/api/countries', [log_request, authorized, validated] ,countries);
-    server.app.use('/api/communities', [log_request, authorized, validated], communities);
+    server.app.use('/api/countries', [logRequest, isAuthorized, isValidated] ,countries);
+    server.app.use('/api/communities', [logRequest, isAuthorized, isValidated], communities);
 
-    server.app.use('/api/me', [log_request, authorized, validated], me);
-    server.app.use('/api/me/following', [log_request, authorized, validated],me_following);
-    server.app.use('/api/me/followers', [log_request, authorized, validated], me_follower);
-    server.app.use('/api/me/community',[log_request, authorized, validated], me_community);
-    server.app.use('/api/me/token',[log_request, authorized, validated], me_token);
-    server.app.use('/api/me/img', [log_request, authorized, validated], me_img);
-    server.app.use('/api/genres', [log_request, authorized, validated], genre);
-    server.app.use('/api/authors', [log_request, authorized, validated], author);
+    server.app.use('/api/me', [logRequest, isAuthorized, isValidated], me);
+    server.app.use('/api/me/following', [logRequest, isAuthorized, isValidated],me_following);
+    server.app.use('/api/me/followers', [logRequest, isAuthorized, isValidated], me_follower);
+    server.app.use('/api/me/community',[logRequest, isAuthorized, isValidated], me_community);
+    server.app.use('/api/me/token',[logRequest, isAuthorized, isValidated], me_token);
+    server.app.use('/api/me/img', [logRequest, isAuthorized, isValidated], me_img);
+    server.app.use('/api/genres', [logRequest, isAuthorized, isValidated], genre);
+    server.app.use('/api/authors', [logRequest, isAuthorized, isValidated], author);
 
 
 

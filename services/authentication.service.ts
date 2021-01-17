@@ -8,11 +8,11 @@ export abstract class AuthService {
 
     public static async authenticateUser({email, password }: IAuthenticateUser): Promise<IServiceResponse>{
 
-        let user : any= await User.findOne({email});
-        if (!user) return this.notFoundGenreMessage();
+        let user : any= await User.findOne({email, 'isDeleted.value': false});
+        if (!user) return this.notFoundAuthenticationMessage();
 
         const validPassword = await Security.validateHash(password, user.password);
-        if (!validPassword) return this.notFoundGenreMessage();
+        if (!validPassword) return this.notFoundAuthenticationMessage();
 
         const token: any = await user.generateAuthToken();
 
@@ -26,7 +26,7 @@ export abstract class AuthService {
     }
 
 
-    private static notFoundGenreMessage(): IServiceResponse {
+    private static notFoundAuthenticationMessage(): IServiceResponse {
         return {
             status: 400,
             response: {

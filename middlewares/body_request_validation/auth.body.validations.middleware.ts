@@ -5,7 +5,7 @@ export const validateAuthenticationBody = function  (req: Request, res: Response
     const { error, value } = schemas.authentication.validate(req.body);
     error ? res.status(422).json({
             ok: false,
-            message: error.details[0].message.replace(/['"]+/g, "")
+            mensaje: error.details[0].message.replace(/['"]+/g, "")
         })
         : next();
 }

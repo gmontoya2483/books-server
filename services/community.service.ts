@@ -131,7 +131,7 @@ export abstract class CommunityService {
 
     public static async setDeleted (communityId: string, {isDeleted}: IDeleteCommunity): Promise<IServiceResponse>{
         const deleted = (isDeleted) ? {value: true, deletedDateTime: Date.now()}
-            : {value: false, validatedDateTime: null};
+            : {value: false, deletedDateTime: null};
 
         const community = await Community.findByIdAndUpdate(communityId, {
             $set: {

@@ -89,7 +89,7 @@ export abstract class AuthorService{
     public static async setDeleted (authorId: string, {isDeleted}: IDeleteAuthor): Promise<IServiceResponse>{
 
         const deleted = (isDeleted) ? {value: true, deletedDateTime: Date.now()}
-            : {value: false, validatedDateTime: null};
+            : {value: false, deletedDateTime: null};
 
         const author = await Author.findByIdAndUpdate(authorId, {
             $set: {
