@@ -259,4 +259,13 @@ export abstract class CommunityService {
          };
      }
 
+    public static async existsCommunity (condition: {}){
+        let community = await Community.findOne(condition);
+        return !!community;
+    }
+
+    public static async getCommunities(criteria:{}){
+        return Community.find(criteria).sort('name').select({name: 1});
+    }
+
 }
