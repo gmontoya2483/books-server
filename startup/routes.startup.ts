@@ -21,6 +21,7 @@ import uploads from "../routes/upload.route"
 import countries from "../routes/country.route"
 import countries_admin from "../routes/country.admin.route"
 import communities from "../routes/community.route"
+import communities_admin from "../routes/community.admin.route"
 import me from "../routes/me.route"
 import me_following from "../routes/me.following.route"
 import me_follower from "../routes/me.follower.route"
@@ -53,7 +54,7 @@ module.exports = function(server: ServerClass){
     server.app.use('/api/countries', [logRequest, isAuthorized, isValidated] ,countries);
     server.app.use('/api/countries/admin', [logRequest, isAuthorized, isValidated, isAdmin] ,countries_admin);
     server.app.use('/api/communities', [logRequest, isAuthorized, isValidated], communities);
-
+    server.app.use('/api/communities/admin', [logRequest, isAuthorized, isValidated, isAdmin], communities_admin);
     server.app.use('/api/me', [logRequest, isAuthorized, isValidated], me);
     server.app.use('/api/me/following', [logRequest, isAuthorized, isValidated],me_following);
     server.app.use('/api/me/followers', [logRequest, isAuthorized, isValidated], me_follower);

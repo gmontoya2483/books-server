@@ -185,7 +185,7 @@ export abstract class CommunityService {
         const community: any = await Community.findById(communityId);
         if (!community) return this.notFoundCommunityMessage();
 
-        // Generat criterio de búsqueda
+        // Generar criterio de búsqueda
         let criteria = {};
         criteria = {...criteria, 'comunidad._id': communityId};
         if(search) {
@@ -199,16 +199,13 @@ export abstract class CommunityService {
             }
         }
 
-        console.log (criteria);
-
-        // TODO: Agregar esta validacion al criterio de busqueda cuando se habilite el IsDeleted en User Model
         // Verificar si se muestran los marcados como borrados
-        // if (!showDeleted){
-        //     criteria = {
-        //         ... criteria,
-        //         'isDeleted.value': false
-        //     }
-        // }
+        if (!showDeleted){
+            criteria = {
+                ... criteria,
+                'isDeleted.value': false
+            }
+        }
 
         // Calcular total de usuarios y páginas
         const totalUsers = await User.countDocuments(criteria);

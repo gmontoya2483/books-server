@@ -23,28 +23,28 @@ router.get('/:id', [], async(req: Request, res: Response) => {
 });
 
 
-router.post('/', [isAdmin, validateNewCommunity], async (req: Request, res: Response) => {
-    const returnedResponse = await CommunityService.NewCommunity(req.body);
-    return res.status(returnedResponse.status).json(returnedResponse.response);
-});
-
-
-router.delete('/:id', [isAdmin], async (req: Request, res: Response) => {
-    const returnedResponse = await CommunityService.deleteCommunity(req.params.id);
-    return res.status(returnedResponse.status).json(returnedResponse.response);
-});
-
-
-router.put('/:id', [isAdmin, validateUpdateCommunity], async(req: Request, res: Response) => {
-    const returnedResponse = await CommunityService.updateCommunity(req.params.id, req.body);
-    return res.status(returnedResponse.status).json(returnedResponse.response);
-});
-
-
-router.put('/:id/delete', [isAdmin, validateDeleteCommunity], async (req:Request, res: Response)=>{
-    const returnedResponse = await CommunityService.setDeleted(req.params.id, req.body);
-    return res.status(returnedResponse.status).json(returnedResponse.response);
-});
+// router.post('/', [isAdmin, validateNewCommunity], async (req: Request, res: Response) => {
+//     const returnedResponse = await CommunityService.NewCommunity(req.body);
+//     return res.status(returnedResponse.status).json(returnedResponse.response);
+// });
+//
+//
+// router.delete('/:id', [isAdmin], async (req: Request, res: Response) => {
+//     const returnedResponse = await CommunityService.deleteCommunity(req.params.id);
+//     return res.status(returnedResponse.status).json(returnedResponse.response);
+// });
+//
+//
+// router.put('/:id', [isAdmin, validateUpdateCommunity], async(req: Request, res: Response) => {
+//     const returnedResponse = await CommunityService.updateCommunity(req.params.id, req.body);
+//     return res.status(returnedResponse.status).json(returnedResponse.response);
+// });
+//
+//
+// router.put('/:id/delete', [isAdmin, validateDeleteCommunity], async (req:Request, res: Response)=>{
+//     const returnedResponse = await CommunityService.setDeleted(req.params.id, req.body);
+//     return res.status(returnedResponse.status).json(returnedResponse.response);
+// });
 
 
 
