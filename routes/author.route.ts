@@ -1,9 +1,6 @@
 import {Request, Response, Router} from "express";
-import {isAdmin} from "../middlewares/admin.middleware"
 import {
-    validateDeleteAuthor,
-    validateNewAuthor,
-    validateUpdateAuthor
+    validateNewAuthor
 } from "../middlewares/body_request_validation/author.body.validations.middleware"
 import {AuthorService} from "../services/author.service";
 import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
@@ -38,20 +35,20 @@ router.post('/', [validateNewAuthor], async (req:Request, res: Response)=>{
     return res.status(returnedResponse.status).json(returnedResponse.response);
 });
 
-router.put('/:id', [isAdmin, validateUpdateAuthor], async (req:Request, res: Response)=>{
-    const returnedResponse = await AuthorService.updateAuthor(req.params.id, req.body);
-    return res.status(returnedResponse.status).json(returnedResponse.response);
-});
-
-router.put('/:id/delete', [isAdmin, validateDeleteAuthor], async (req:Request, res: Response)=>{
-    const returnedResponse = await AuthorService.setDeleted(req.params.id, req.body);
-    return res.status(returnedResponse.status).json(returnedResponse.response);
-});
-
-router.delete('/:id', [isAdmin], async (req:Request, res: Response)=>{
-    const returnedResponse = await AuthorService.deleteAuthor(req.params.id);
-    return res.status(returnedResponse.status).json(returnedResponse.response);
-});
+// router.put('/:id', [isAdmin, validateUpdateAuthor], async (req:Request, res: Response)=>{
+//     const returnedResponse = await AuthorService.updateAuthor(req.params.id, req.body);
+//     return res.status(returnedResponse.status).json(returnedResponse.response);
+// });
+//
+// router.put('/:id/delete', [isAdmin, validateDeleteAuthor], async (req:Request, res: Response)=>{
+//     const returnedResponse = await AuthorService.setDeleted(req.params.id, req.body);
+//     return res.status(returnedResponse.status).json(returnedResponse.response);
+// });
+//
+// router.delete('/:id', [isAdmin], async (req:Request, res: Response)=>{
+//     const returnedResponse = await AuthorService.deleteAuthor(req.params.id);
+//     return res.status(returnedResponse.status).json(returnedResponse.response);
+// });
 
 
 export default router;

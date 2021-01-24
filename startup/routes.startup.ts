@@ -30,6 +30,7 @@ import me_token from "../routes/me.token.route"
 import me_img from "../routes/me.img.route"
 import genre from "../routes/genre.routes"
 import author from "../routes/author.route"
+import author_admin from "../routes/author.admin.route"
 import img from "../routes/img.route"
 
 
@@ -63,6 +64,8 @@ module.exports = function(server: ServerClass){
     server.app.use('/api/me/img', [logRequest, isAuthorized, isValidated], me_img);
     server.app.use('/api/genres', [logRequest, isAuthorized, isValidated], genre);
     server.app.use('/api/authors', [logRequest, isAuthorized, isValidated], author);
+    server.app.use('/api/authors/admin', [logRequest, isAuthorized, isValidated, isAdmin], author_admin);
+
 
 
 
