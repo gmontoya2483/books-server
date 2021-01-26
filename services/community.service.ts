@@ -1,11 +1,11 @@
 import {Community} from "../models/community.model";
 import {IDeleteCommunity, INewCommunity, IServiceResponse, IUpdateCommunity} from "../interfaces/community.interfaces";
-import {Country} from "../models/country.model";
 import {User} from "../models/user.model";
 import logger from "../startup/logger.startup";
 import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
 import {IPagination} from "../interfaces/pagination.interfaces";
 import {Pagination} from "../classes/pagination.class";
+import {CountryService} from "./country.service";
 
 
 const mongoose = require('mongoose');
@@ -63,8 +63,9 @@ export abstract class CommunityService {
 
     public static async NewCommunity({name, countryId}: INewCommunity): Promise<IServiceResponse>{
 
-        const country = await Country.findById(countryId).select({__v: 0});
-        if (!country) return this.notFoundCommunityMessage("Pais no encontrado");
+        //const country = await Country.findById(countryId).select({__v: 0});
+        const country = await CountryService.findCountry(countryId)
+        if (!country) return CountryService.notFoundCountryMessage();
 
         const community: any = new Community({
             name,
@@ -236,7 +237,7 @@ export abstract class CommunityService {
     }
 
 
-    private static notFoundCommunityMessage(mensaje: string = "Comunidad no encontrada"): IServiceResponse {
+    public static notFoundCommunityMessage(mensaje: string = "Comunidad no encontrada"): IServiceResponse {
         return {
             status: 404,
             response: {
@@ -263,6 +264,10 @@ export abstract class CommunityService {
 
     public static async getCommunities(criteria:{}){
         return Community.find(criteria).sort('name').select({name: 1});
+    }
+
+    public static async findCommunity(communityId: string) {
+        return Community.findById(communityId).select({__v: 0});
     }
 
 }

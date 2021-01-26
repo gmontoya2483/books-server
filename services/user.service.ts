@@ -16,7 +16,14 @@ import {
 
 export abstract class UserService {
 
-    private static stdOutputFields: string [] = ['_id', 'email', 'isValidated', 'isAdmin', 'nombre', 'apellido'];
+    private static stdOutputFields: string [] = [
+        '_id',
+        'email',
+        'isValidated',
+        'isAdmin',
+        'nombre',
+        'apellido'
+    ];
 
     public static async newUser({nombre, apellido, email, password}: INewUser): Promise<IServiceResponse> {
 
@@ -251,8 +258,13 @@ export abstract class UserService {
         return !!user;
     }
 
+    public static async findUser(userId: string): Promise<IServiceResponse> {
+        const user: any  = await User.findById(userId).select({password: 0});
+        return user;
+    }
 
-    private static notFoundUserMessage(mensaje: string = "Usuario no encontrada"): IServiceResponse {
+
+    public static notFoundUserMessage(mensaje: string = "Usuario no encontrada"): IServiceResponse {
         return {
             status: 404,
             response: {

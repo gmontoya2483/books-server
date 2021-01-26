@@ -9,7 +9,6 @@ import  {isValidated}  from "../middlewares/validated.middleware";
 import {isAuthorized} from "../middlewares/auth.middleware";
 import {isAdmin} from "../middlewares/admin.middleware";
 
-
 import mensajes from "../routes/example.route";
 import users from "../routes/user.route";
 import users_admin from "../routes/user.admin.route"
@@ -31,9 +30,7 @@ import author from "../routes/author.route"
 import author_admin from "../routes/author.admin.route"
 import img from "../routes/img.route"
 
-
 module.exports = function(server: ServerClass){
-
     // Helmet
     server.app.use(helmet());
 
@@ -64,10 +61,6 @@ module.exports = function(server: ServerClass){
     server.app.use('/api/genres/admin', [logRequest, isAuthorized, isValidated, isAdmin], genre_admin);
     server.app.use('/api/authors', [logRequest, isAuthorized, isValidated], author);
     server.app.use('/api/authors/admin', [logRequest, isAuthorized, isValidated, isAdmin], author_admin);
-
-
-
-
 
     server.app.use('/api/img', img);
 

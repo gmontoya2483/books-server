@@ -213,9 +213,13 @@ export abstract class CountryService {
 
     }
 
+    public static async findCountry(countryId: string) {
+        return  Country.findById(countryId).select({__v: 0});
+    }
 
 
-    private static notFoundCountryMessage(mensaje: string = "Pais no encontrada"): IServiceResponse {
+
+    public static notFoundCountryMessage(mensaje: string = "Pais no encontrada"): IServiceResponse {
         return {
             status: 404,
             response: {
