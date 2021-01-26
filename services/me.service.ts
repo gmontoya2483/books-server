@@ -1,8 +1,6 @@
 import {IServiceResponse, IUpdateMe} from "../interfaces/me.interfaces";
 import {UserService} from "./user.service";
-import {Country} from "../models/country.model";
 import {User} from "../models/user.model";
-import {Community} from "../models/community.model";
 import logger from "../startup/logger.startup";
 import {CountryService} from "./country.service";
 import {CommunityService} from "./community.service";
@@ -80,6 +78,22 @@ export abstract class MeService{
         };
 
 
+    }
+
+    public static async generateToken (meId: string): Promise<IServiceResponse> {
+        const me: any  = await UserService.findUser(meId);
+        if( !me ) return UserService.notFoundUserMessage();
+
+        const token = await me.generateAuthToken();
+
+        return {
+            status: 200,
+            response: {
+                ok: true,
+                token
+            }
+
+        };
     }
 
 
