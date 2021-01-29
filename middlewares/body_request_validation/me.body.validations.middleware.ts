@@ -9,3 +9,12 @@ export const validateUpdateMe = function  (req: Request, res: Response, next: Ne
         })
         : next();
 }
+
+export const validateSetCommunity = function  (req: Request, res: Response, next: NextFunction) {
+    const { error, value } = schemas.setCommunity.validate(req.body);
+    error ? res.status(422).json({
+            ok: false,
+            mensaje: error.details[0].message.replace(/['"]+/g, "")
+        })
+        : next();
+}

@@ -274,6 +274,16 @@ export abstract class UserService {
         };
     }
 
+    public static badRequestUserMessage(mensaje: string = `Problemas con el ususario`): IServiceResponse {
+        return {
+            status: 400,
+            response: {
+                ok: false,
+                mensaje
+            }
+        };
+    }
+
 
     private static async sendEmailValidationEmail(name: string, email: string, token: string){
             const emailMessage: any = Notification.getValidationEmail(name, email, token);

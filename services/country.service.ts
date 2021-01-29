@@ -214,7 +214,7 @@ export abstract class CountryService {
     }
 
     public static async findCountry(countryId: string) {
-        return  Country.findById(countryId).select({__v: 0});
+        return  Country.findById(countryId).select({_v: 0 });
     }
 
 

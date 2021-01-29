@@ -8,6 +8,7 @@ import {Pagination} from "../classes/pagination.class";
 import {CountryService} from "./country.service";
 
 
+
 const mongoose = require('mongoose');
 const Fawn = require('fawn');
 
@@ -97,11 +98,9 @@ export abstract class CommunityService {
         try {
             new Fawn.Task()
                 .update('communities', {_id: community._id}, {
-                    // @ts-ignore
                     $set: {name: community.name}
                 })
                 .update('users', {'comunidad._id': community._id}, {
-                    // @ts-ignore
                     $set: {'comunidad.name': community.name}
                 })
                 .options({multi: true})
@@ -186,8 +185,31 @@ export abstract class CommunityService {
         const community: any = await Community.findById(communityId);
         if (!community) return this.notFoundCommunityMessage();
 
+        const {pagination, users} = await CommunityService.findCommunityMembers(null, communityId, search, {pageNumber, pageSize}, showDeleted)
+
+
+        return {
+            status: 200,
+            response: {
+                ok: true,
+                community,
+                users: {
+                    pagination,
+                    users
+                }
+            }
+
+        };
+
+
+    }
+
+    public static async findCommunityMembers(excludedUserId: string | null, communityId: string, search: any = null, {pageNumber = 1, pageSize = DEFAULT_PAGE_SIZE}: IPagination
+        , showDeleted: boolean = false){
+
         // Generar criterio de búsqueda
         let criteria = {};
+
         criteria = {...criteria, 'comunidad._id': communityId};
         if(search) {
             criteria = {
@@ -208,6 +230,15 @@ export abstract class CommunityService {
             }
         }
 
+
+        // Excluir userId
+        if (excludedUserId) {
+            criteria = {
+                ...criteria,
+                _id: {$ne : excludedUserId}
+            }
+        }
+
         // Calcular total de usuarios y páginas
         const totalUsers = await User.countDocuments(criteria);
         const pagination = await new Pagination(totalUsers, pageNumber, pageSize).getPagination();
@@ -220,19 +251,7 @@ export abstract class CommunityService {
             .sort('nombre apellido').select({ password: 0});
 
 
-        return {
-            status: 200,
-            response: {
-                ok: true,
-                community,
-                users: {
-                    pagination,
-                    users
-                }
-            }
-
-        };
-
+        return { pagination, users};
 
     }
 
@@ -247,15 +266,15 @@ export abstract class CommunityService {
         };
     }
 
-     private static badRequestCommunityMessage(mensaje: string = `La comunidad tiene usuarios asociadas`): IServiceResponse {
-         return {
-             status: 400,
-             response: {
-                 ok: false,
-                 mensaje
-             }
-         };
-     }
+    private static badRequestCommunityMessage(mensaje: string = `La comunidad tiene usuarios asociadas`): IServiceResponse {
+        return {
+            status: 400,
+            response: {
+                ok: false,
+                mensaje
+            }
+        };
+    }
 
     public static async existsCommunity (condition: {}){
         let community = await Community.findOne(condition);
@@ -269,5 +288,4 @@ export abstract class CommunityService {
     public static async findCommunity(communityId: string) {
         return Community.findById(communityId).select({__v: 0});
     }
-
 }

@@ -6,6 +6,8 @@ export interface IServiceResponse {
         mensaje?: string;
         me?: {};
         token?: string;
+        community?: {};
+        users?: {};
     }
 }
 
@@ -13,4 +15,8 @@ export interface IUpdateMe {
     nombre: string;
     apellido: string;
     paisResidenciaId: string;
+}
+
+export interface ISetMyCommunity {
+    comunidadId: string;
 }

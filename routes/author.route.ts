@@ -35,20 +35,4 @@ router.post('/', [validateNewAuthor], async (req:Request, res: Response)=>{
     return res.status(returnedResponse.status).json(returnedResponse.response);
 });
 
-// router.put('/:id', [isAdmin, validateUpdateAuthor], async (req:Request, res: Response)=>{
-//     const returnedResponse = await AuthorService.updateAuthor(req.params.id, req.body);
-//     return res.status(returnedResponse.status).json(returnedResponse.response);
-// });
-//
-// router.put('/:id/delete', [isAdmin, validateDeleteAuthor], async (req:Request, res: Response)=>{
-//     const returnedResponse = await AuthorService.setDeleted(req.params.id, req.body);
-//     return res.status(returnedResponse.status).json(returnedResponse.response);
-// });
-//
-// router.delete('/:id', [isAdmin], async (req:Request, res: Response)=>{
-//     const returnedResponse = await AuthorService.deleteAuthor(req.params.id);
-//     return res.status(returnedResponse.status).json(returnedResponse.response);
-// });
-
-
 export default router;

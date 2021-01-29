@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { countrySchema } from './country.model'
+import {referencedCountrySchema} from './country.model'
 
 const communitySchema = new mongoose.Schema({
     name: {
@@ -10,7 +10,7 @@ const communitySchema = new mongoose.Schema({
         maxlength: 255
     },
     country: {
-        type: countrySchema,
+        type: referencedCountrySchema,
         required: true
     },
     dateTimeCreated: {

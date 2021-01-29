@@ -204,7 +204,7 @@ export abstract class AuthorService{
         };
     }
 
-    private static BadRequestAuthorMessage(mensaje: string = `El author tiene libros asociados`): IServiceResponse {
+    public static BadRequestAuthorMessage(mensaje: string = `El author tiene libros asociados`): IServiceResponse {
         return {
             status: 400,
             response: {
