@@ -11,4 +11,7 @@ export const schemas = {
     setCommunity: Joi.object().keys({
         comunidadId: Joi.objectId()
     }),
+    following: Joi.object().keys({
+        followingUserId: Joi.objectId().required()
+    }),
 };

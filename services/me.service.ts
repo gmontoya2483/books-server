@@ -33,7 +33,6 @@ export abstract class MeService{
             country = null;
         } else {
             country  = await CountryService.findCountry(paisResidenciaId);
-            console.log(country)
             if (!country) return CountryService.notFoundCountryMessage();
         }
 
@@ -80,7 +79,6 @@ export abstract class MeService{
             }
 
         };
-
 
     }
 
