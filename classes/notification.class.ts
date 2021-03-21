@@ -23,7 +23,7 @@ export abstract class Notification {
                  <br>
                  <h3>Haz click en el siguiente enlace:</h3>
                  <br>
-                 <a href=${NOT_BASE_URL}/verificarEmail?token=${token}><h2>Activar cuenta</h2></a>
+                 <a href=${NOT_BASE_URL}/auth/verificarEmail?token=${token}><h2>Activar cuenta</h2></a>
                  <br>
                  <p>Muchas gracias!!</p>
             </body>
@@ -52,7 +52,7 @@ export abstract class Notification {
                  <br>
                  <h3>Haz click en el siguiente enlace para continuar con la solicitud:</h3>
                  <br>
-                 <a href=${NOT_BASE_URL}/confirmarCambioPassword?token=${token}><h2>Cambiar contraseña</h2></a>
+                 <a href=${NOT_BASE_URL}/auth/confirmarCambioPassword?token=${token}><h2>Cambiar contraseña</h2></a>
                  <br>
                  <p>Muchas gracias!!</p>
             </body>
