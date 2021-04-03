@@ -2,14 +2,22 @@ import {IDeleteAuthor, INewAuthor, IServiceResponse, IUpdateAuthor} from "../int
 import {Author} from "../models/author.model";
 import {IPagination} from "../interfaces/pagination.interfaces";
 import {Pagination} from "../classes/pagination.class";
-import {User} from "../models/user.model";
 import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
 
 
 
 export abstract class AuthorService{
 
-    public static async newAuthor ({name,  lastName}: INewAuthor): Promise<IServiceResponse>{
+    public static async newAuthor (newAuthor: INewAuthor): Promise<IServiceResponse>{
+
+        const name = newAuthor.name.trim();
+        const lastName = newAuthor.lastName.trim();
+
+        const duplicateAuthor = await Author.findOne({
+            'name': {$regex:  `${name}`, $options:'i'},
+            'lastName': {$regex:  `${lastName}`, $options:'i'}
+        });
+        if (duplicateAuthor) return this.BadRequestAuthorMessage(`El autor ${ name } ${ lastName} ya existe`);
 
         const author = new Author({name, lastName});
         await author.save();
