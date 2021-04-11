@@ -1,4 +1,4 @@
-import {INewBook, IServiceResponse, IUpdateBook} from "../interfaces/book.interfaces";
+import {INewBook, IServiceResponse, IShortBook, IUpdateBook} from "../interfaces/book.interfaces";
 import {Book} from "../models/book.model";
 import {AuthorService} from "./author.service";
 import {GenreService} from "./genre.service";
@@ -220,6 +220,32 @@ export abstract class BookService {
                 mensaje
             }
         };
+    }
+
+    public static async getBooksByAuthor(authorId: string, showDeleted = false): Promise<IShortBook[]>{
+
+        console.log('entro a getBooksByAuthor');
+        // Generat criterio de búsqueda
+        let criteria: {} = {
+            'author._id': authorId
+        };
+
+        if (!showDeleted){
+            criteria = {
+                ... criteria,
+                'isDeleted.value': false
+            }
+        }
+        const books = await Book.find(criteria).select({
+            title: 1,
+            description: 1,
+            img: 1,
+            genre: 1,
+            author: 1,
+            isDeleted: 1
+        });
+        console.log(books);
+        return books;
     }
 
 

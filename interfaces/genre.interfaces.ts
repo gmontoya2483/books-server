@@ -6,6 +6,11 @@ export interface IUpdateGenre {
     name: string;
 }
 
+export interface IShortGenre {
+    _id: string;
+    name: string;
+}
+
 
 export interface IServiceResponse {
     status: number;

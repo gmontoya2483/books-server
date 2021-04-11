@@ -26,7 +26,8 @@ router.get('/:id', [], async (req:Request, res: Response)=>{
 });
 
 router.get('/:id/books', [], async (req:Request, res: Response)=>{
-    const returnedResponse = await AuthorService.getBooks(req.params.id);
+    const showDeleted  = req.query.showDeleted === 'true';
+    const returnedResponse = await AuthorService.getBooks(req.params.id, showDeleted);
     return res.status(returnedResponse.status).json(returnedResponse.response);
 });
 

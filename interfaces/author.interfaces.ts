@@ -12,6 +12,12 @@ export interface IDeleteAuthor {
     isDeleted: boolean;
 }
 
+export interface IShortAuthor {
+    _id: string;
+    name: string;
+    lasName: string;
+}
+
 export interface IServiceResponse {
     status: number;
     response : {

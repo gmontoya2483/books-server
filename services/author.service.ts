@@ -8,6 +8,8 @@ import {Author} from "../models/author.model";
 import {IPagination} from "../interfaces/pagination.interfaces";
 import {Pagination} from "../classes/pagination.class";
 import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
+import {IShortBook} from "../interfaces/book.interfaces";
+import {BookService} from "./book.service";
 
 
 
@@ -189,14 +191,13 @@ export abstract class AuthorService {
         };
     }
 
-    public static async getBooks(authorId: string): Promise<IServiceResponse> {
+    public static async getBooks(authorId: string,  showDeleted: boolean = false): Promise<IServiceResponse> {
 
+        console.log('entró a Author.getBooks');
         const author= await Author.findById(authorId);
         if (!author) return this.notFoundAuthorMessage();
 
-        //TODO agregar lógica para obtener los libros del autor
-
-        const books: any [] =  [];
+        const books: IShortBook [] =  await BookService.getBooksByAuthor(authorId, showDeleted);
 
         return {
             status: 200,
@@ -212,6 +213,7 @@ export abstract class AuthorService {
 
 
     private static hasBooks(authorId: string): Boolean {
+
 
         // TODO: agregar lógica para buscar un libro del autor devolver true si encuntra un libro,
         //  devolver false si es null
