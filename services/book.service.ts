@@ -4,8 +4,8 @@ import {AuthorService} from "./author.service";
 import {GenreService} from "./genre.service";
 import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
 import {IPagination} from "../interfaces/pagination.interfaces";
-import {Author} from "../models/author.model";
 import {Pagination} from "../classes/pagination.class";
+import {IDeleteAuthor} from "../interfaces/author.interfaces";
 
 export abstract class BookService {
 
@@ -148,8 +148,53 @@ export abstract class BookService {
     }
 
 
+    public static async deleteBook( bookId: string): Promise<IServiceResponse> {
+        if(this.hasCopies(bookId)) return this.BadRequestBookMessage();
 
-    private static hasCopy(bookId: string): Boolean {
+        const book: any = await Book.findByIdAndDelete(bookId);
+        if(!book) return this.notFoundBookMessage();
+
+        return {
+            status: 200,
+            response: {
+                ok: true,
+                mensaje: `El libro ${ book.title } ha sido eliminado`,
+                book
+            }
+        };
+    }
+
+    public static async setDeleted (bookId: string, {isDeleted}: IDeleteAuthor): Promise<IServiceResponse>{
+
+        const deleted = (isDeleted) ? {value: true, deletedDateTime: Date.now()}
+            : {value: false, deletedDateTime: null};
+
+        const book = await Book.findByIdAndUpdate(bookId, {
+            $set: {
+                isDeleted: deleted,
+                dateTimeUpdated: Date.now()
+            }
+        }, {new: true});
+
+        if (!book) return this.notFoundBookMessage();
+
+        const message = (isDeleted) ? `El libro ha sido marcado como eliminado`
+            : `El libro ha sido desmarcado como eliminado`
+
+        return {
+            status: 200,
+            response: {
+                ok: true,
+                mensaje: message,
+                book
+            }
+
+        };
+
+    }
+
+
+    private static hasCopies(bookId: string): Boolean {
 
         // TODO: agregar lógica para buscar un libro del autor devolver true si encuntra un libro,
         //  devolver false si es null
