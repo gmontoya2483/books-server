@@ -5,6 +5,13 @@ export interface INewBook {
     genreId: string
 }
 
+export interface IUpdateBook {
+    title: string;
+    description: string;
+    authorId: string;
+    genreId: string
+}
+
 export interface IServiceResponse {
     status: number;
     response : {

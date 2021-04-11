@@ -4,7 +4,6 @@ import {BookService} from "../services/book.service";
 import {IPagination} from "../interfaces/pagination.interfaces";
 import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
 
-
 const router = Router();
 
 router.get('/:id', [], async (req:Request, res: Response)=>{

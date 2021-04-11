@@ -156,6 +156,7 @@ export abstract class AuthorService {
     public static async updateAuthor (authorId: string, {name, lastName}: IUpdateAuthor): Promise<IServiceResponse> {
 
         //TODO: Agregar transaccion para modificar los libros y los ejemplares
+        // TODO: Verificar que el nuevo nombre del autor no este duplicado
 
         const author = await Author.findByIdAndUpdate(authorId, {
             $set: {
