@@ -106,6 +106,9 @@ export abstract class BookService {
     public static async updateBook (bookId: string, { title, description, authorId, genreId }: IUpdateBook): Promise<IServiceResponse> {
         //TODO: Agregar transaccion para modificar los  ejemplares
 
+        title = title.trim();
+        description = description.trim();
+
         // Verifica si el nuevo titulo ya existe
         const duplicateBook = await Book.findOne({
             'title': {$regex:  `${title}`, $options:'i'},

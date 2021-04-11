@@ -156,7 +156,17 @@ export abstract class AuthorService {
     public static async updateAuthor (authorId: string, {name, lastName}: IUpdateAuthor): Promise<IServiceResponse> {
 
         //TODO: Agregar transaccion para modificar los libros y los ejemplares
-        // TODO: Verificar que el nuevo nombre del autor no este duplicado
+
+        name = name.trim();
+        lastName = lastName.trim();
+
+        const duplicateAuthor = await Author.findOne({
+            'name': {$regex:  `${name}`, $options:'i'},
+            'lastName': {$regex:  `${lastName}`, $options:'i'},
+            '_id': { $ne: authorId }
+        });
+        if (duplicateAuthor) return this.BadRequestAuthorMessage(`El autor ${ name } ${ lastName} ya existe`);
+
 
         const author = await Author.findByIdAndUpdate(authorId, {
             $set: {
