@@ -2,6 +2,10 @@ import {INewBook, IServiceResponse} from "../interfaces/book.interfaces";
 import {Book} from "../models/book.model";
 import {AuthorService} from "./author.service";
 import {GenreService} from "./genre.service";
+import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
+import {IPagination} from "../interfaces/pagination.interfaces";
+import {Author} from "../models/author.model";
+import {Pagination} from "../classes/pagination.class";
 
 export abstract class BookService {
 
@@ -38,9 +42,53 @@ export abstract class BookService {
         }
     }
 
+    public static async getAllBooks(search: any = null, {pageNumber = 1, pageSize = DEFAULT_PAGE_SIZE}: IPagination
+        , showDeleted: boolean = false): Promise<IServiceResponse> {
+
+        // Generat criterio de búsqueda
+        let criteria = {};
+        if(search){
+            criteria = {
+                ...criteria,
+                $or: [
+                    {title: {$regex:  `.*${search}.*`, $options:'i'}},
+                    {'author.name': {$regex: `.*${search}.*`, $options:'i'}},
+                    {'author.lastName': {$regex: `.*${search}.*`, $options:'i'}},
+                    {'genre.name': {$regex: `.*${search}.*`, $options:'i'}}
+                ]
+            }
+        }
+
+        // Verificar si se muestran los marcados como borrados
+        if (!showDeleted){
+            criteria = {
+                ... criteria,
+                'isDeleted.value': false
+            }
+        }
+
+        const totalBooks = await Book.countDocuments(criteria);
+        const pagination = await new Pagination(totalBooks,pageNumber, pageSize).getPagination();
+        // Actualiza page number de acuerdo a la paginación
+        const currentPageNumber = pagination.currentPage;
+
+        const books = await Book.find(criteria)
+            .skip((currentPageNumber - 1) * pageSize)
+            .limit(pageSize)
+            .sort('title').select({ password: 0});
 
 
-
+        return {
+            status: 200,
+            response: {
+                ok: true,
+                books: {
+                    pagination: pagination,
+                    books
+                }
+            }
+        };
+    }
 
 
     private static hasCopy(bookId: string): Boolean {
@@ -50,8 +98,6 @@ export abstract class BookService {
 
         return false;
     }
-
-
 
     private static notFoundBookMessage(mensaje: string = "Libro no encontrado"): IServiceResponse {
         return {
