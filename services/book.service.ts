@@ -90,6 +90,20 @@ export abstract class BookService {
         };
     }
 
+    public static async getSingleBook( bookId: string): Promise<IServiceResponse> {
+        const book = await Book.findById(bookId);
+        if(!book) return this.notFoundBookMessage();
+
+        return {
+            status: 200,
+            response: {
+                ok: true,
+                book
+            }
+        }
+    }
+
+
 
     private static hasCopy(bookId: string): Boolean {
 

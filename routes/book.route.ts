@@ -4,7 +4,13 @@ import {BookService} from "../services/book.service";
 import {IPagination} from "../interfaces/pagination.interfaces";
 import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
 
+
 const router = Router();
+
+router.get('/:id', [], async (req:Request, res: Response)=>{
+    const returnedResponse = await BookService.getSingleBook(req.params.id);
+    return res.status(returnedResponse.status).json(returnedResponse.response);
+});
 
 router.get('/', [], async (req: Request, res: Response) => {
     const search = req.query.search || null;
