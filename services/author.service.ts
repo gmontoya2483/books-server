@@ -1,4 +1,9 @@
-import {IDeleteAuthor, INewAuthor, IServiceResponse, IUpdateAuthor} from "../interfaces/author.interfaces";
+import {
+    IDeleteAuthor,
+    INewAuthor,
+    IServiceResponse,
+    IUpdateAuthor
+} from "../interfaces/author.interfaces";
 import {Author} from "../models/author.model";
 import {IPagination} from "../interfaces/pagination.interfaces";
 import {Pagination} from "../classes/pagination.class";
@@ -6,7 +11,7 @@ import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
 
 
 
-export abstract class AuthorService{
+export abstract class AuthorService {
 
     public static async newAuthor (newAuthor: INewAuthor): Promise<IServiceResponse>{
 
@@ -90,7 +95,10 @@ export abstract class AuthorService{
             }
 
         };
+    }
 
+    public static async findAuthor( authorId: string ) {
+        return Author.findById(authorId).select({_v: 0});
     }
 
 

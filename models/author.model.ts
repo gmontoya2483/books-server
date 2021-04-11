@@ -27,5 +27,21 @@ export const authorSchema = new mongoose.Schema({
     }
 });
 
-//Country Model Class
+// Referenced authorSchema
+export const referencedAuthorSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+        minlength: 3,
+        maxlength: 50
+    },
+    lastName: {
+        type: String,
+        required: true,
+        minlength: 3,
+        maxlength: 50
+    }
+});
+
+//Author Model Class
 export const Author = mongoose.model('Author', authorSchema);

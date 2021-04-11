@@ -1,7 +1,6 @@
 import {INewGenre, IServiceResponse, IUpdateGenre} from "../interfaces/genre.interfaces";
 import {Genre} from "../models/genre.model";
 import {IDeleteAuthor} from "../interfaces/author.interfaces";
-import {Author} from "../models/author.model";
 
 export abstract class GenreService {
 
@@ -32,6 +31,10 @@ export abstract class GenreService {
 
         };
 
+    }
+
+    public static async findGenre( genreId: string ) {
+        return Genre.findById(genreId).select({_v: 0});
     }
 
 

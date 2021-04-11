@@ -4,7 +4,7 @@ export const genreSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
-        minlength: 5,
+        minlength: 3,
         maxlength: 50
     },
     dateTimeCreated: {
@@ -21,5 +21,15 @@ export const genreSchema = new mongoose.Schema({
     }
 });
 
-//Country Model Class
+// Referenced genreSchema
+export const referencedGenreSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+        minlength: 3,
+        maxlength: 50
+    }
+});
+
+//Genre Model Class
 export const Genre = mongoose.model('Genre', genreSchema);
