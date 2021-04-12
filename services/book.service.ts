@@ -222,10 +222,16 @@ export abstract class BookService {
         };
     }
 
+    public static async ExistsBooksByAuthor(authorId: string): Promise<boolean>{
+        const book = await Book.findOne({'author._id': authorId});
+        if(!book) return false;
+
+        return true;
+    }
+
     public static async getBooksByAuthor(authorId: string, showDeleted = false): Promise<IShortBook[]>{
 
-        console.log('entro a getBooksByAuthor');
-        // Generat criterio de búsqueda
+        // Generar criterio de búsqueda
         let criteria: {} = {
             'author._id': authorId
         };

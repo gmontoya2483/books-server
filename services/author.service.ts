@@ -136,7 +136,7 @@ export abstract class AuthorService {
 
     public static async deleteAuthor(authorId: string): Promise<IServiceResponse> {
 
-        if (this.hasBooks(authorId)) return  this.BadRequestAuthorMessage();
+        if (await this.hasBooks(authorId)) return  this.BadRequestAuthorMessage();
 
         const author: any = await Author.findByIdAndDelete(authorId);
 
@@ -192,8 +192,6 @@ export abstract class AuthorService {
     }
 
     public static async getBooks(authorId: string,  showDeleted: boolean = false): Promise<IServiceResponse> {
-
-        console.log('entró a Author.getBooks');
         const author= await Author.findById(authorId);
         if (!author) return this.notFoundAuthorMessage();
 
@@ -212,13 +210,8 @@ export abstract class AuthorService {
 
 
 
-    private static hasBooks(authorId: string): Boolean {
-
-
-        // TODO: agregar lógica para buscar un libro del autor devolver true si encuntra un libro,
-        //  devolver false si es null
-
-        return false;
+    private static async hasBooks(authorId: string): Promise<boolean> {
+        return await BookService.ExistsBooksByAuthor(authorId);
     }
 
 
