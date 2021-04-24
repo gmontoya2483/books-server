@@ -252,7 +252,7 @@ export abstract class FollowService{
         const filter = {'follower': me._id, 'following': following._id};
 
         // Verificar si el usuario esta siguiendo al following
-        const follow: any = await Follow.findOne({'follower': me._id, 'following': following._id})
+        const follow: any = await Follow.findOne(filter)
             .select({follower: 0}).populate('following', {password: 0});
 
         if(!follow)

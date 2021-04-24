@@ -17,8 +17,8 @@ export abstract class AuthorService {
 
     public static async newAuthor (newAuthor: INewAuthor): Promise<IServiceResponse>{
 
-        const name = newAuthor.name.trim();
-        const lastName = newAuthor.lastName.trim();
+        const name = newAuthor.name.trim().toUpperCase();
+        const lastName = newAuthor.lastName.trim().toUpperCase();
 
         const duplicateAuthor = await Author.findOne({
             'name': {$regex:  `${name}`, $options:'i'},
@@ -70,7 +70,7 @@ export abstract class AuthorService {
         const authors = await Author.find(criteria)
             .skip((currentPageNumber - 1) * pageSize)
             .limit(pageSize)
-            .sort('lastName name').select({ password: 0});
+            .sort({lastName: 1, name: 1}).select({ password: 0});
 
 
         return {
@@ -159,8 +159,8 @@ export abstract class AuthorService {
 
         //TODO: Agregar transaccion para modificar los libros y los ejemplares
 
-        name = name.trim();
-        lastName = lastName.trim();
+        name = name.trim().toUpperCase();
+        lastName = lastName.trim().toUpperCase();
 
         const duplicateAuthor = await Author.findOne({
             'name': {$regex:  `${name}`, $options:'i'},

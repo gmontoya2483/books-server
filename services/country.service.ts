@@ -42,7 +42,7 @@ export abstract class CountryService {
             }
         }
 
-        const countries = await Country.find(criteria).sort('name');
+        const countries = await Country.find(criteria).sort({name: 1});
         const total = countries.length;
         return {
             status: 200,
@@ -91,6 +91,8 @@ export abstract class CountryService {
 
 
     public static async newCountry ({name}: INewCountry): Promise<IServiceResponse>{
+
+        name = name.trim().toUpperCase();
         const country: any = new Country({ name });
         await country.save();
 
@@ -133,7 +135,7 @@ export abstract class CountryService {
         let country: any = await Country.findById(countryId);
         if (!country) return this.notFoundCountryMessage();
 
-        country.name = name;
+        country.name = name.trim().toUpperCase();
 
         try {
             new Fawn.Task()

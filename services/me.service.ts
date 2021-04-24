@@ -27,6 +27,9 @@ export abstract class MeService{
 
     public static async updateMe (meId:string, {paisResidenciaId, nombre, apellido}: IUpdateMe): Promise<IServiceResponse> {
 
+        nombre = nombre.trim().toUpperCase();
+        apellido = apellido.trim().toUpperCase();
+
         // Obtener el pais de residencia
         let country: any;
         if( !paisResidenciaId ){

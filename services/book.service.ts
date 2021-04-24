@@ -11,7 +11,7 @@ export abstract class BookService {
 
     public static async newBook ({title, description, authorId, genreId }: INewBook): Promise<IServiceResponse>{
 
-        title = title.trim();
+        title = title.trim().toUpperCase();
         description = description.trim();
 
         // Verifica si el libro ya existe
@@ -75,7 +75,7 @@ export abstract class BookService {
         const books = await Book.find(criteria)
             .skip((currentPageNumber - 1) * pageSize)
             .limit(pageSize)
-            .sort('title').select({ password: 0});
+            .sort({title: 1}).select({ password: 0});
 
 
         return {
@@ -106,7 +106,7 @@ export abstract class BookService {
     public static async updateBook (bookId: string, { title, description, authorId, genreId }: IUpdateBook): Promise<IServiceResponse> {
         //TODO: Agregar transaccion para modificar los  ejemplares
 
-        title = title.trim();
+        title = title.trim().toUpperCase();
         description = description.trim();
 
         // Verifica si el nuevo titulo ya existe

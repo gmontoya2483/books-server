@@ -5,6 +5,7 @@ import {IDeleteAuthor} from "../interfaces/author.interfaces";
 export abstract class GenreService {
 
     public static async newGenre ({name}: INewGenre): Promise<IServiceResponse>{
+        name = name.trim().toUpperCase();
         const genre = new Genre({name});
         await genre.save();
 
@@ -123,6 +124,8 @@ export abstract class GenreService {
 
 
     public static async updateGenre (genreId: string, {name}: IUpdateGenre): Promise<IServiceResponse>{
+
+        name = name.trim().toUpperCase();
 
         //TODO: transaccion para modificar los libros y los ejemplares
         const genre = await Genre.findByIdAndUpdate(genreId, {

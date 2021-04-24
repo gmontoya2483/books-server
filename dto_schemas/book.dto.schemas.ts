@@ -4,7 +4,7 @@ Joi.objectId = require('joi-objectid')(Joi)
 export const schemas = {
     new: Joi.object().keys({
         title: Joi.string().min(3).max(100).required(),
-        description: Joi.string().min(5).max(1500).required(),
+        description: Joi.string().min(5).max(5000).required(),
         authorId: Joi.objectId().required(),
         genreId: Joi.objectId().required()
     }),

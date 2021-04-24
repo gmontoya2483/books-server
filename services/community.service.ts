@@ -49,7 +49,7 @@ export abstract class CommunityService {
             }
         }
 
-        const communities = await Community.find(criteria).sort('name');
+        const communities = await Community.find(criteria).sort({ name: 1 });
         const total = communities.length;
         return {
             status: 200,
@@ -64,7 +64,8 @@ export abstract class CommunityService {
 
     public static async NewCommunity({name, countryId}: INewCommunity): Promise<IServiceResponse>{
 
-        //const country = await Country.findById(countryId).select({__v: 0});
+        name = name.trim().toUpperCase();
+
         const country = await CountryService.findCountry(countryId)
         if (!country) return CountryService.notFoundCountryMessage();
 
@@ -89,6 +90,8 @@ export abstract class CommunityService {
 
 
     public static async updateCommunity (communityId: string, {name}: IUpdateCommunity): Promise<IServiceResponse>{
+
+        name = name.trim().toUpperCase();
 
         let community: any = await Community.findById(communityId);
         if (!community) return this.notFoundCommunityMessage();

@@ -27,6 +27,9 @@ export abstract class UserService {
 
     public static async newUser({nombre, apellido, email, password}: INewUser): Promise<IServiceResponse> {
 
+        nombre = nombre.trim().toUpperCase();
+        apellido = apellido.trim().toUpperCase();
+
         // Validar email no esta duplicado
         if (await this.existsUser({email})) {
             return {

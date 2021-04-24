@@ -13,7 +13,7 @@ export const bookSchema = new mongoose.Schema({
         type: String,
         required: true,
         minlength: 5,
-        maxlength: 1500
+        maxlength: 5000
     },
     author: {
         type: referencedAuthorSchema,
