@@ -104,7 +104,7 @@ export abstract class BookService {
     }
 
     public static async updateBook (bookId: string, { title, description, authorId, genreId }: IUpdateBook): Promise<IServiceResponse> {
-        //TODO: Agregar transaccion para modificar los  ejemplares
+        //TODO: TRSCL-154 - Agregar transaccion para modificar los  ejemplares
 
         title = title.trim().toUpperCase();
         description = description.trim();
@@ -196,7 +196,7 @@ export abstract class BookService {
 
     private static hasCopies(bookId: string): Boolean {
 
-        // TODO: agregar lógica para buscar un libro del autor devolver true si encuntra un libro,
+        // TODO: TRSCL-155 - Agregar lógica para buscar una Copia del libro. Devolver true si encuntra un libro,
         //  devolver false si es null
 
         return false;
@@ -228,6 +228,14 @@ export abstract class BookService {
 
         return true;
     }
+
+    public static async ExistsBooksByGenre(genreId: string): Promise<boolean>{
+        const book = await Book.findOne({'genre._id': genreId});
+        if(!book) return false;
+
+        return true;
+    }
+
 
     public static async getBooksByAuthor(authorId: string, showDeleted = false): Promise<IShortBook[]>{
 

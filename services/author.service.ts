@@ -157,7 +157,7 @@ export abstract class AuthorService {
 
     public static async updateAuthor (authorId: string, {name, lastName}: IUpdateAuthor): Promise<IServiceResponse> {
 
-        //TODO: Agregar transaccion para modificar los libros y los ejemplares
+        //TODO: TRSCL-153 - Agregar transaccion para modificar los libros y los ejemplares
 
         name = name.trim().toUpperCase();
         lastName = lastName.trim().toUpperCase();

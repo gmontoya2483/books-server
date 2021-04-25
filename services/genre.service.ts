@@ -1,6 +1,7 @@
 import {INewGenre, IServiceResponse, IUpdateGenre} from "../interfaces/genre.interfaces";
 import {Genre} from "../models/genre.model";
 import {IDeleteAuthor} from "../interfaces/author.interfaces";
+import {BookService} from "./book.service";
 
 export abstract class GenreService {
 
@@ -73,7 +74,7 @@ export abstract class GenreService {
 
     public static async deleteGenre(genreId: string): Promise<IServiceResponse> {
 
-        if (this.hasBooks(genreId)) return  this.BadRequestGenreMessage();
+        if (await this.hasBooks(genreId)) return  this.BadRequestGenreMessage();
 
         const genre: any = await Genre.findByIdAndDelete(genreId);
 
@@ -127,7 +128,7 @@ export abstract class GenreService {
 
         name = name.trim().toUpperCase();
 
-        //TODO: transaccion para modificar los libros y los ejemplares
+        // TODO: TRSCL-156 - transaccion para modificar los libros y los ejemplares
         const genre = await Genre.findByIdAndUpdate(genreId, {
             $set: {
                 name,
@@ -151,12 +152,8 @@ export abstract class GenreService {
     }
 
 
-    private static hasBooks(genreId: string): Boolean {
-
-        // TODO: agregar lógica para buscar un libro del autor devolver true si encuntra un libro,
-        //  devolver false si es null
-
-        return false;
+    private static async hasBooks(genreId: string): Promise<boolean> {
+        return await BookService.ExistsBooksByGenre(genreId);
     }
 
     private static notFoundGenreMessage(mensaje: string = "Género no encontrado"): IServiceResponse {
