@@ -1,4 +1,4 @@
-import {INewBook, IServiceResponse, IShortBook, IUpdateBook} from "../interfaces/book.interfaces";
+import {INewBook, IServiceResponse, IUpdateBook} from "../interfaces/book.interfaces";
 import {Book} from "../models/book.model";
 import {AuthorService} from "./author.service";
 import {GenreService} from "./genre.service";
@@ -75,7 +75,7 @@ export abstract class BookService {
         const books = await Book.find(criteria)
             .skip((currentPageNumber - 1) * pageSize)
             .limit(pageSize)
-            .sort({title: 1}).select({ password: 0});
+            .sort({title: 1});
 
 
         return {
@@ -237,8 +237,7 @@ export abstract class BookService {
     }
 
 
-    public static async getBooksByAuthor(authorId: string, showDeleted = false): Promise<IShortBook[]>{
-
+    public static async getBooksByAuthor(authorId: string, showDeleted = false): Promise<any[]>{
         // Generar criterio de búsqueda
         let criteria: {} = {
             'author._id': authorId
@@ -250,18 +249,6 @@ export abstract class BookService {
                 'isDeleted.value': false
             }
         }
-        const books = await Book.find(criteria).select({
-            title: 1,
-            description: 1,
-            img: 1,
-            genre: 1,
-            author: 1,
-            isDeleted: 1
-        });
-        console.log(books);
-        return books;
+        return Book.find(criteria).sort({'title': 1});
     }
-
-
-
 }

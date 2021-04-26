@@ -15,14 +15,7 @@ export interface IUpdateBook {
     genreId: string
 }
 
-export interface IShortBook {
-    _id: string;
-    title: string;
-    description: string;
-    img?: string | null;
-    genre: IShortGenre;
-    author: IShortAuthor
-}
+
 
 export interface IServiceResponse {
     status: number;

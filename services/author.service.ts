@@ -8,7 +8,7 @@ import {Author} from "../models/author.model";
 import {IPagination} from "../interfaces/pagination.interfaces";
 import {Pagination} from "../classes/pagination.class";
 import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
-import {IShortBook} from "../interfaces/book.interfaces";
+
 import {BookService} from "./book.service";
 
 
@@ -195,7 +195,7 @@ export abstract class AuthorService {
         const author= await Author.findById(authorId);
         if (!author) return this.notFoundAuthorMessage();
 
-        const books: IShortBook [] =  await BookService.getBooksByAuthor(authorId, showDeleted);
+        const books: any [] =  await BookService.getBooksByAuthor(authorId, showDeleted);
 
         return {
             status: 200,
