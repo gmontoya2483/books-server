@@ -1,12 +1,9 @@
 import mongoose, {Schema } from 'mongoose';
 import Security from "../classes/security.class"
 import {JWT_PRIVATE_KEY, JWT_AUTH_EXPIRES_IN, JWT_NOT_EXPIRES_IN} from "../globals/environment.global";
-import {countrySchema} from "./country.model";
+import {referencedCountrySchema} from "./country.model";
 
-
-
-const userSchema = new mongoose.Schema({
-
+const userSchema: any = new mongoose.Schema({
     email: {
         type: String,
         unique: true,
@@ -46,7 +43,7 @@ const userSchema = new mongoose.Schema({
       default: null
     },
     paisResidencia:{
-        type: countrySchema,
+        type: referencedCountrySchema,
         default: null
     },
     comunidad: {
@@ -64,6 +61,14 @@ const userSchema = new mongoose.Schema({
     createdDateTime: {
         type: Date,
         default: Date.now
+    },
+    updatedDateTime: {
+        type: Date,
+        default: Date.now
+    },
+    isDeleted: {
+        value: {type: Boolean, default: false},
+        deletedDateTime: {type: Date, default: null}
     }
 });
 

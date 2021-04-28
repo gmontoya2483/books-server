@@ -1,170 +1,62 @@
-import {User} from "../models/user.model";
 import {Request, Response, Router} from "express";
-const admin = require('../middlewares/admin.middleware');
-const new_community_body_validation = require('../middlewares/body_request_validation/community.new.body.validation.middleware');
-const update_community_body_validation = require('../middlewares/body_request_validation/community.update.body.validation.middleware');
-import { Community } from '../models/community.model';
-import { Country } from "../models/country.model";
+import {isAdmin} from "../middlewares/admin.middleware"
 import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
-import {Pagination} from "../classes/pagination.class";
+import {
+    validateDeleteCommunity,
+    validateNewCommunity, validateUpdateCommunity
+} from "../middlewares/body_request_validation/community.body.validations.middleware";
+import {CommunityService} from "../services/community.service";
+import {IPagination} from "../interfaces/pagination.interfaces";
 
 const router = Router();
 
-const mongoose = require('mongoose');
-const Fawn = require('fawn');
-
-// Init fawn for using transactions
-Fawn.init(mongoose, 'trxCommunityUsers');
-
 router.get('/', [], async (req: Request, res: Response) => {
-    const communities = await Community.find()
-        .sort('name');
-
-    return res.json({
-        ok: true,
-        communities
-    });
+    const search = req.query.search || null;
+    const showDeleted  = req.query.showDeleted === 'true';
+    const returnedResponse = await CommunityService.getAllCommunities(search, showDeleted);
+    return res.status(returnedResponse.status).json(returnedResponse.response);
 });
-
-
-
 
 router.get('/:id', [], async(req: Request, res: Response) => {
-    const community = await Community.findById(req.params.id);
-
-    if (!community) return res.status(404).json({
-        ok: false,
-        mensaje: "Comunidad no encontrada"
-    });
-
-    return res.json({
-        ok: true,
-        community
-    });
+    const returnedResponse = await CommunityService.getSingleCommunity(req.params.id);
+    return res.status(returnedResponse.status).json(returnedResponse.response);
 });
 
 
-router.post('/', [admin, new_community_body_validation], async (req: Request, res: Response) => {
+// router.post('/', [isAdmin, validateNewCommunity], async (req: Request, res: Response) => {
+//     const returnedResponse = await CommunityService.NewCommunity(req.body);
+//     return res.status(returnedResponse.status).json(returnedResponse.response);
+// });
+//
+//
+// router.delete('/:id', [isAdmin], async (req: Request, res: Response) => {
+//     const returnedResponse = await CommunityService.deleteCommunity(req.params.id);
+//     return res.status(returnedResponse.status).json(returnedResponse.response);
+// });
+//
+//
+// router.put('/:id', [isAdmin, validateUpdateCommunity], async(req: Request, res: Response) => {
+//     const returnedResponse = await CommunityService.updateCommunity(req.params.id, req.body);
+//     return res.status(returnedResponse.status).json(returnedResponse.response);
+// });
+//
+//
+// router.put('/:id/delete', [isAdmin, validateDeleteCommunity], async (req:Request, res: Response)=>{
+//     const returnedResponse = await CommunityService.setDeleted(req.params.id, req.body);
+//     return res.status(returnedResponse.status).json(returnedResponse.response);
+// });
 
-    const country = await Country.findById(req.body.countryId).select({__v: 0});
-    if (!country) return res.status(400).json({
-        ok: false,
-        mensaje: "Pais no encontrado"
-    });
-
-    const community = new Community({
-        name: req.body.name,
-        country
-    });
-
-    await community.save();
-
-    res.status(201).json({
-        ok: true,
-        // @ts-ignore
-        mensaje: `La comunidad ${ community.name } ha sido agregada`,
-        community
-    });
-});
-
-
-router.delete('/:id', [admin], async (req: Request, res: Response) => {
-
-    const user = await User.findOne({'comunidad._id':req.params.id})
-    if (user) return res.status(400).json({
-        ok: false,
-        mensaje: "La comunidad tiene usuarios asociadas"
-    });
-
-    const community = await Community.findByIdAndDelete(req.params.id);
-    if (!community) return res.status(404).json({
-        ok: false,
-        mensaje: "Comunidad no encontrada"
-    });
-
-
-    return res.json({
-        ok: true,
-        // @ts-ignore
-        mensaje: `La comunidad ${ community.name } ha sido eliminada`,
-        community
-    });
-});
-
-
-router.put('/:id', [admin, update_community_body_validation], async(req: Request, res: Response) => {
-
-    let community = await Community.findById(req.params.id);
-    if (!community) return res.status(404).json({
-        ok: false,
-        mensaje: "Comunidad no encontrada"
-    });
-
-    // @ts-ignore
-    community.name = req.body.name;
-
-    try {
-        new Fawn.Task()
-            .update('communities', {_id: community._id}, {
-                // @ts-ignore
-                $set: {name: community.name}
-            })
-            .update('users', {'comunidad._id': community._id},{
-                // @ts-ignore
-                $set: {'comunidad.name': community.name}
-            })
-            .options({multi: true})
-            .run();
-
-        return res.json({
-            ok: true,
-            // @ts-ignore
-            mensaje: `La comunidad ${ community.name } ha sido modificada`,
-            community
-        });
-    } catch (e) {
-        return res.status(500).json({
-            ok: false,
-            mensaje: `Internal Server Error.`});
-    }
-
-});
 
 
 router.get('/:id/members', [], async(req: Request, res: Response) => {
-
-    console.log("entro aca");
-
-    let pageNumber = Number(req.query.page) || 1;
-    const pageSize = Number(req.query.pageSize) || DEFAULT_PAGE_SIZE;
-    const community = await Community.findById(req.params.id);
-
-    if (!community) return res.status(404).json({
-        ok: false,
-        mensaje: "Comunidad no encontrada"
-    });
-
-    // Calcular total de usuarios y páginas
-    const totalUsers = await User.countDocuments({'comunidad._id': req.params.id});
-    const pagination = await new Pagination(totalUsers, pageNumber, pageSize).getPagination();
-
-    pageNumber = pagination.currentPage;
-
-
-    const users = await User.find({'comunidad._id': req.params.id})
-        .skip((pageNumber - 1) * pageSize)
-        .limit(pageSize)
-        .sort('nombre apellido').select({ password: 0});
-
-    return res.json({
-        ok: true,
-        community,
-        users: {
-            pagination: pagination,
-            users: users,
-            }
-    });
-
+    const search = req.query.search || null;
+    const showDeleted  = req.query.showDeleted === 'true';
+    const pagination: IPagination = {
+        pageNumber: Number(req.query.page) || 1,
+        pageSize : Number(req.query.pageSize) || DEFAULT_PAGE_SIZE
+    }
+    const returnedResponse = await CommunityService.getCommunityMembers(req.params.id, search, pagination, showDeleted);
+    return res.status(returnedResponse.status).json(returnedResponse.response);
 });
 
 export default router;

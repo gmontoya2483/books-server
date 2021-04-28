@@ -1,8 +1,6 @@
 import {Request, Response, Router} from "express";
 import {IMG_USERS_PATH} from "../globals/environment.global";
 import UploadFile from "../classes/uploadfile.class";
-import {User} from "../models/user.model";
-const log_request = require('../middlewares/log_request.middleware');
 
 
 const router = Router();

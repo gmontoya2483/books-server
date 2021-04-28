@@ -21,9 +21,15 @@ export class Pagination {
         const previousPage = (this.pageNumber - 1 > 0) ? this.pageNumber - 1 : null;
         const nextPage = (this.pageNumber + 1 <= totalPages) ? this.pageNumber + 1 : null;
         const pages = [];
-        for (let i=0; i<totalPages; i++){
-            pages.push(i+1);
+
+        if (totalPages > 0){
+            for (let i=0; i<totalPages; i++){
+                pages.push(i+1);
+            }
+        } else {
+            pages.push(1);
         }
+
 
         // Calcular registro mostrados
         const fromRecord = ((this.pageNumber - 1) * this.pageSize) + 1;
@@ -35,11 +41,11 @@ export class Pagination {
             previousPage: previousPage,
             currentPage: this.pageNumber,
             nextPage:nextPage,
-            totalPages: totalPages,
+            totalPages: (totalPages>0)? totalPages : 1,
             pageSize: this.pageSize,
             pages: pages,
             showing: {
-                from: fromRecord,
+                from: (this.totalRecords > 0) ?fromRecord: 0,
                 to: toRecord,
                 of: ofTotal
             }

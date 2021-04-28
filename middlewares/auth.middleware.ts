@@ -2,7 +2,7 @@ import { JWT_PRIVATE_KEY } from "../globals/environment.global";
 import Security from "../classes/security.class"
 import { NextFunction, Request, Response } from "express";
 
-module.exports = async function auth  (req: Request , res: Response, next: NextFunction){
+export const isAuthorized = async function  (req: Request , res: Response, next: NextFunction){
     const token = req.header('x-auth-token');
     if(!token) return res.status(401).json({
         ok: false,

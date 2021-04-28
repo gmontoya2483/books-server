@@ -1,13 +1,9 @@
-//import router from "./me.route";
 import {Request, Response, Router} from "express";
 import UploadFile from "../classes/uploadfile.class";
 import {IMG_USERS_PATH} from "../globals/environment.global";
 import {User} from "../models/user.model";
 import logger from "../startup/logger.startup";
-const auth = require('../middlewares/auth.middleware');
-const log_request = require('../middlewares/log_request.middleware');
 const fileUpload = require('../middlewares/fileupload.middleware');
-const validated = require('../middlewares/validated.middleware');
 
 const router = Router();
 
