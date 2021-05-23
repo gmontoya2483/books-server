@@ -88,7 +88,6 @@ userSchema.methods.generateNotificationToken = async function () {
 export const referencedUserSchema = new Schema({
     email: {
         type: String,
-        unique: true,
         index: true,
         minlength: 5,
         maxlength: 255,
