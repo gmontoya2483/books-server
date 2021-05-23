@@ -90,6 +90,11 @@ export abstract class BookService {
         };
     }
 
+    public static async findBook( bookId: string) {
+        const book = await Book.findById(bookId);
+        return book;
+    }
+
     public static async getSingleBook( bookId: string): Promise<IServiceResponse> {
         const book = await Book.findById(bookId);
         if(!book) return this.notFoundBookMessage();
@@ -202,7 +207,7 @@ export abstract class BookService {
         return false;
     }
 
-    private static notFoundBookMessage(mensaje: string = "Libro no encontrado"): IServiceResponse {
+    public static notFoundBookMessage(mensaje: string = "Libro no encontrado"): IServiceResponse {
         return {
             status: 404,
             response: {

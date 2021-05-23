@@ -1,7 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 import {referencedCountrySchema} from './country.model'
 
-const communitySchema = new mongoose.Schema({
+export const communitySchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
@@ -25,7 +25,17 @@ const communitySchema = new mongoose.Schema({
         value: {type: Boolean, default: false},
         deletedDateTime: {type: Date, default: null}
     }
-})
+});
+
+export const referencedCommunitySchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+        trim: true,
+        minlength: 5,
+        maxlength: 255
+    }
+});
 
 
 

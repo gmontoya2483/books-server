@@ -1,7 +1,7 @@
 import {IDeleteCountry, INewCountry, IServiceResponse, IUpdateCountry} from "../interfaces/country.interfaces";
 import {Country} from "../models/country.model";
 import {CommunityService} from "./community.service";
-import {Community} from "../models/community.model";
+
 
 const mongoose = require('mongoose');
 const Fawn = require('fawn');

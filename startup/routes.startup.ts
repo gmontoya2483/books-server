@@ -24,6 +24,7 @@ import me_follower from "../routes/me.follower.route"
 import me_community from "../routes/me.community.route"
 import me_token from "../routes/me.token.route"
 import me_img from "../routes/me.img.route"
+import me_copy from "../routes/me.copy.route"
 import genre from "../routes/genre.routes"
 import genre_admin from "../routes/genre.admin.route"
 import author from "../routes/author.route"
@@ -59,6 +60,7 @@ module.exports = function(server: ServerClass){
     server.app.use('/api/me/community',[logRequest, isAuthorized, isValidated], me_community);
     server.app.use('/api/me/token',[logRequest, isAuthorized, isValidated], me_token);
     server.app.use('/api/me/img', [logRequest, isAuthorized, isValidated], me_img);
+    server.app.use('/api/me/copy', [logRequest, isAuthorized, isValidated], me_copy);
     server.app.use('/api/genres', [logRequest, isAuthorized, isValidated], genre);
     server.app.use('/api/genres/admin', [logRequest, isAuthorized, isValidated, isAdmin], genre_admin);
     server.app.use('/api/authors', [logRequest, isAuthorized, isValidated], author);

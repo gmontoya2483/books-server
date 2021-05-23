@@ -1,7 +1,8 @@
-import mongoose, {Schema } from 'mongoose';
+import mongoose, {Schema, model, Document } from 'mongoose';
 import Security from "../classes/security.class"
 import {JWT_PRIVATE_KEY, JWT_AUTH_EXPIRES_IN, JWT_NOT_EXPIRES_IN} from "../globals/environment.global";
 import {referencedCountrySchema} from "./country.model";
+import {referencedCommunitySchema} from "./community.model";
 
 const userSchema: any = new mongoose.Schema({
     email: {
@@ -47,15 +48,7 @@ const userSchema: any = new mongoose.Schema({
         default: null
     },
     comunidad: {
-        type: new mongoose.Schema({
-            name: {
-                type: String,
-                required: true,
-                trim: true,
-                minlength: 5,
-                maxlength: 255
-            }
-        }),
+        type: referencedCommunitySchema,
         default: null
     },
     createdDateTime: {
@@ -92,8 +85,37 @@ userSchema.methods.generateNotificationToken = async function () {
         JWT_PRIVATE_KEY, JWT_NOT_EXPIRES_IN);
 };
 
+export const referencedUserSchema = new Schema({
+    email: {
+        type: String,
+        unique: true,
+        index: true,
+        minlength: 5,
+        maxlength: 255,
+        required: true
+    },
+    nombre: {
+        type: String,
+        minlength: 5,
+        maxlength: 255,
+        required: true
+    },
+    apellido: {
+        type: String,
+        minlength: 5,
+        maxlength: 255,
+        required: true
+    },
+    comunidad: {
+        type: referencedCommunitySchema,
+        default: null
+    }
+});
+
+
+
 
 //User Model Class
-export const User = mongoose.model('User', userSchema);
+export const User = model('User', userSchema);
 
 

@@ -261,7 +261,7 @@ export abstract class UserService {
         return !!user;
     }
 
-    public static async findUser(userId: string): Promise<IServiceResponse> {
+    public static async findUser(userId: string): Promise<any> {
         const user: any  = await User.findById(userId).select({password: 0});
         return user;
     }
