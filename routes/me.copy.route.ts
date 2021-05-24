@@ -2,6 +2,9 @@ import {Request, Response, Router} from "express";
 import {validateNewCopy} from "../middlewares/body_request_validation/copy.body.validatios.middleware";
 import {BookService} from "../services/book.service";
 import {CopyService} from "../services/copy.service";
+import {IPagination} from "../interfaces/pagination.interfaces";
+import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
+import {ICriteria} from "../interfaces/copy.interfaces";
 
 
 const router = Router();
@@ -15,15 +18,21 @@ router.post('/', [validateNewCopy], async (req:Request, res: Response)=>{
 
 router.get('/', [], async (req:Request, res: Response)=>{
 
-    return res.status(200).json({result: 'ok'})
+    const search = req.query.search || null;
+    const showDeleted  = req.query.showDeleted === 'true';
+    const pagination: IPagination = {
+        pageNumber: Number(req.query.page) || 1,
+        pageSize : Number(req.query.pageSize) || DEFAULT_PAGE_SIZE
+    };
 
-    // const pagination: IPagination = {
-    //     pageNumber: Number(req.query.page) || 1,
-    //     pageSize : Number(req.query.pageSize) || DEFAULT_PAGE_SIZE
-    // }
-    // // @ts-ignore
-    // const returnedResponse = await FollowService.getAllMyFollowers(req.user._id,  pagination);
-    // return res.status(returnedResponse.status).json(returnedResponse.response);
+    const criteria: ICriteria = {
+        // @ts-ignore
+        userId: req.user._id
+    };
+
+    const returnedResponse = await CopyService.getAllCopies(search, pagination, showDeleted, criteria);
+    return res.status(returnedResponse.status).json(returnedResponse.response);
+
 });
 
 export default router;

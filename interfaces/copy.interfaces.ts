@@ -3,6 +3,12 @@ export interface INewCopy {
 }
 
 
+export interface ICriteria {
+    userId?: string | null,
+    communityId?: string | null
+}
+
+
 export interface IServiceResponse {
     status: number;
     response : {
