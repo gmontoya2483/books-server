@@ -88,7 +88,7 @@ export abstract class CopyService {
         const copies = await Copy.find(criteria)
             .skip((currentPageNumber - 1) * pageSize)
             .limit(pageSize)
-            .sort({title: 1});
+            .sort({'book.title': 1});
 
 
         return {
