@@ -30,7 +30,7 @@ router.get('/', [], async (req:Request, res: Response)=>{
         userId: req.user._id
     };
 
-    const returnedResponse = await CopyService.getAllCopies(search, pagination, showDeleted, criteria);
+    const returnedResponse = await CopyService.getAllCopiesByUser(search, pagination, showDeleted, criteria);
     return res.status(returnedResponse.status).json(returnedResponse.response);
 
 });

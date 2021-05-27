@@ -296,6 +296,18 @@ export abstract class FollowService{
 
     }
 
+    public static async getIfUserAFollowsUserB(userA: string, userB: string, isConfirmed = true): Promise<boolean>{
+        const criteria = {
+            follower: userA,
+            following: userB,
+            'isConfirmed.value': isConfirmed
+        }
+
+        const follow: any = await Follow.findOne(criteria);
+        return !!(follow);
+
+    }
+
 
 
 

@@ -1,13 +1,11 @@
-
 import {ICriteria, INewCopy, IServiceResponse} from "../interfaces/copy.interfaces";
 import {UserService} from "./user.service";
 import {BookService} from "./book.service";
-import { Copy } from "../models/copy.model";
+import {Copy} from "../models/copy.model";
 import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
 import {IPagination} from "../interfaces/pagination.interfaces";
-import {IHelmetPermittedCrossDomainPoliciesConfiguration} from "helmet";
-import {Book} from "../models/book.model";
 import {Pagination} from "../classes/pagination.class";
+import {FollowService} from "./follow.service";
 
 
 
@@ -37,7 +35,43 @@ export abstract class CopyService {
     }
 
 
-    public static async getAllCopies(search: any = null, {pageNumber = 1, pageSize = DEFAULT_PAGE_SIZE}: IPagination
+    public static async getAllCopiesByCommunity(search: any = null, {pageNumber = 1, pageSize = DEFAULT_PAGE_SIZE}: IPagination
+        , showDeleted: boolean = false, { communityId }: ICriteria, meId: string): Promise<IServiceResponse> {
+
+        const result = await this.getAllCopies(search, {pageNumber, pageSize}, showDeleted, {userId: null, communityId});
+
+        // Agregar informacion si el Owner esta siendo seguido por "me"
+        const copiesWithFollowing: any [] = [];
+        let i = 0;
+        const totalCopies =  result.response.copies?.copies?.length || 0;
+
+        while (i < totalCopies){
+            const currentCopy = result.response.copies!.copies![i];
+            // @ts-ignore
+            const isOwnerFollowedByMe = await FollowService.getIfUserAFollowsUserB(meId, currentCopy.owner._id, true);
+            // @ts-ignore
+            copiesWithFollowing.push({...currentCopy._doc, isOwnerFollowedByMe: isOwnerFollowedByMe});
+
+            i++;
+        }
+        result.response.copies!.copies = copiesWithFollowing;
+
+
+        return result;
+
+    }
+
+
+    public static async getAllCopiesByUser(search: any = null, {pageNumber = 1, pageSize = DEFAULT_PAGE_SIZE}: IPagination
+        , showDeleted: boolean = false, { userId }: ICriteria): Promise<IServiceResponse> {
+        return await this.getAllCopies(search, {pageNumber, pageSize}, showDeleted, {userId, communityId: null});
+    }
+
+
+
+
+
+    private static async getAllCopies(search: any = null, {pageNumber = 1, pageSize = DEFAULT_PAGE_SIZE}: IPagination
     , showDeleted: boolean = false, {userId = null, communityId = null}: ICriteria): Promise<IServiceResponse> {
 
         // Generat criterio de búsqueda
