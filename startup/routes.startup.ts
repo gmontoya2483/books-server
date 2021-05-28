@@ -60,7 +60,7 @@ module.exports = function(server: ServerClass){
     server.app.use('/api/me/community',[logRequest, isAuthorized, isValidated], me_community);
     server.app.use('/api/me/token',[logRequest, isAuthorized, isValidated], me_token);
     server.app.use('/api/me/img', [logRequest, isAuthorized, isValidated], me_img);
-    server.app.use('/api/me/copy', [logRequest, isAuthorized, isValidated], me_copy);
+    server.app.use('/api/me/copies', [logRequest, isAuthorized, isValidated], me_copy);
     server.app.use('/api/genres', [logRequest, isAuthorized, isValidated], genre);
     server.app.use('/api/genres/admin', [logRequest, isAuthorized, isValidated, isAdmin], genre_admin);
     server.app.use('/api/authors', [logRequest, isAuthorized, isValidated], author);

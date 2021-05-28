@@ -101,7 +101,9 @@ export abstract class CopyService {
                     {'book.title': {$regex:  `.*${search}.*`, $options:'i'}},
                     {'book.author.name': {$regex: `.*${search}.*`, $options:'i'}},
                     {'book.author.lastName': {$regex: `.*${search}.*`, $options:'i'}},
-                    {'book.genre.name': {$regex: `.*${search}.*`, $options:'i'}}
+                    {'book.genre.name': {$regex: `.*${search}.*`, $options:'i'}},
+                    {'owner.nombre': {$regex: `.*${search}.*`, $options:'i'}},
+                    {'owner.apellido': {$regex: `.*${search}.*`, $options:'i'}}
                 ]
             }
         }
