@@ -228,6 +228,21 @@ export abstract class UserService {
 
     }
 
+    public static async getSingleUser(UserId: string): Promise<IServiceResponse>{
+        const user: any = await User.findById(UserId).select({'password': 0, '__v': 0});
+        if (!user) return this.notFoundUserMessage();
+
+        return {
+            status: 200,
+            response: {
+                ok: true,
+                usuario: user
+            }
+        };
+
+
+    }
+
 
     public static async setAdmin (UserId: string, {isAdmin}: IAdminUser): Promise<IServiceResponse>{
 
