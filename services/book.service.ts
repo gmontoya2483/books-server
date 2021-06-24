@@ -6,6 +6,7 @@ import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
 import {IPagination} from "../interfaces/pagination.interfaces";
 import {Pagination} from "../classes/pagination.class";
 import {IDeleteAuthor} from "../interfaces/author.interfaces";
+import {CopyService} from "./copy.service";
 
 export abstract class BookService {
 
@@ -154,7 +155,7 @@ export abstract class BookService {
 
 
     public static async deleteBook( bookId: string): Promise<IServiceResponse> {
-        if(this.hasCopies(bookId)) return this.BadRequestBookMessage();
+        if( await this.hasCopies(bookId)) return this.BadRequestBookMessage();
 
         const book: any = await Book.findByIdAndDelete(bookId);
         if(!book) return this.notFoundBookMessage();
@@ -199,12 +200,8 @@ export abstract class BookService {
     }
 
 
-    private static hasCopies(bookId: string): Boolean {
-
-        // TODO: TRSCL-155 - Agregar lógica para buscar una Copia del libro. Devolver true si encuntra un libro,
-        //  devolver false si es null
-
-        return false;
+    private static async hasCopies(bookId: string): Promise<boolean> {
+        return await CopyService.ExistsCopiesByBook(bookId);
     }
 
     public static notFoundBookMessage(mensaje: string = "Libro no encontrado"): IServiceResponse {

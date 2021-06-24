@@ -6,6 +6,7 @@ import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
 import {IPagination} from "../interfaces/pagination.interfaces";
 import {Pagination} from "../classes/pagination.class";
 import {FollowService} from "./follow.service";
+import {Book} from "../models/book.model";
 
 
 
@@ -140,6 +141,15 @@ export abstract class CopyService {
 
 
     }
+
+
+    public static async ExistsCopiesByBook(bookId: string): Promise<boolean>{
+        const copy = await Copy.findOne({'book._id': bookId});
+        if(!copy) return false;
+
+        return true;
+    }
+
 
 
 

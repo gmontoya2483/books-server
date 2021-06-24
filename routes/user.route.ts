@@ -43,8 +43,6 @@ router.get('/:id/copies', [isAuthorized, isValidated], async (req:Request, res: 
 });
 
 
-
-
 router.get('/', [isAuthorized], (req:Request, res: Response)=>{
     res.json({
         ok: true,
