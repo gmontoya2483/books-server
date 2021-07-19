@@ -1,4 +1,4 @@
-import {ICriteria, INewCopy, IServiceResponse} from "../interfaces/copy.interfaces";
+import {ICriteria, INewCopy, IServiceResponse, IUpdateCopies, IUpdateCopiesOutput} from "../interfaces/copy.interfaces";
 import {UserService} from "./user.service";
 import {BookService} from "./book.service";
 import {Copy} from "../models/copy.model";
@@ -150,6 +150,37 @@ export abstract class CopyService {
         return true;
     }
 
+    public static async UpdateCopiesByBookId (bookId: string, opts: any ,{title, description, author, genre}: IUpdateCopies)
+        : Promise<IUpdateCopiesOutput> {
+
+        const CopiesToUpdate: any [] = await Copy.find({'book._id': bookId});
+        const totalCopiesToUpdate = CopiesToUpdate.length;
+        console.log(totalCopiesToUpdate);
+
+        let totalUpdatedCopies = 0;
+        let ok = false
+
+        for (const copy of CopiesToUpdate) {
+            copy.book.title = title;
+            copy.book.description = description;
+            copy.book.genre = genre;
+            copy.book.author = author;
+            copy.dateTimeUpdated = Date.now()
+            try {
+                await copy.save(opts);
+                //await copy.save(); // localhost
+                totalUpdatedCopies ++;
+            } catch (e) {
+                console.log(e)
+                break;
+            }
+        }
+
+        ok = (totalUpdatedCopies == totalCopiesToUpdate);
+        return {ok, totalCopiesToUpdate, totalUpdatedCopies}
+
+    }
+
 
 
 
@@ -162,7 +193,6 @@ export abstract class CopyService {
             }
         };
     }
-
 
 
 }

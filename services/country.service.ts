@@ -10,6 +10,7 @@ const Fawn = require('fawn');
 Fawn.init(mongoose, 'trxCountryCommunitiesUsers');
 
 export abstract class CountryService {
+
     public static async getSingleCountry(countryId: string) : Promise<IServiceResponse> {
         const country : any = await Country.findById(countryId);
         if (!country) return this.notFoundCountryMessage();

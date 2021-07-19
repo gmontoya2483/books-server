@@ -7,6 +7,8 @@ import {IPagination} from "../interfaces/pagination.interfaces";
 import {Pagination} from "../classes/pagination.class";
 import {IDeleteAuthor} from "../interfaces/author.interfaces";
 import {CopyService} from "./copy.service";
+import {IUpdateCopiesOutput} from "../interfaces/copy.interfaces";
+
 
 export abstract class BookService {
 
@@ -110,7 +112,6 @@ export abstract class BookService {
     }
 
     public static async updateBook (bookId: string, { title, description, authorId, genreId }: IUpdateBook): Promise<IServiceResponse> {
-        //TODO: TRSCL-154 - Agregar transaccion para modificar los  ejemplares
 
         title = title.trim().toUpperCase();
         description = description.trim();
@@ -128,27 +129,52 @@ export abstract class BookService {
 
         // Verifica y Obtiene el Género
         const genre: any = await GenreService.findGenre(genreId);
-        if ( !genre ) return this.BadRequestBookMessage(`Genero no encontrado`)
+        if ( !genre ) return this.BadRequestBookMessage(`Genero no encontrado`);
 
-        const book = await Book.findByIdAndUpdate(
-            bookId,
-            {
-                title,
-                description,
-                author,
-                genre,
-                dateTimeUpdated: Date.now()
-            }, {new: true});
+        const session = await Book.startSession();
+        session.startTransaction();
+        try {
+            const opts = { session };
 
-        if(!book) return this.notFoundBookMessage();
+            const book = await Book.findByIdAndUpdate(
+                bookId,
+                {
+                    title,
+                    description,
+                    author,
+                    genre,
+                    dateTimeUpdated: Date.now()
+                }, {new: true, session: session}); // Si es local host sacar el session: session
 
-        return {
-            status: 200,
-            response: {
-                ok: true,
-                mensaje: `El libro ha sido modificado`,
-                book
+            if(!book) {
+                session.endSession();
+                return this.notFoundBookMessage();
             }
+
+
+            const updateCopiesResult: IUpdateCopiesOutput = await CopyService.UpdateCopiesByBookId(bookId, opts, {title, description, author, genre });
+
+            console.log(updateCopiesResult);
+            if (!updateCopiesResult.ok) throw (`Hubo problemas al odificar las copias: ${JSON.stringify(updateCopiesResult)}`)
+
+            console.log('ups')
+            await session.commitTransaction();
+            session.endSession();
+
+            return {
+                status: 200,
+                response: {
+                    ok: true,
+                    mensaje: `El libro ha sido modificado`,
+                    book
+                }
+            }
+
+        } catch (e) {
+            console.log('salio por aca')
+            await session.abortTransaction();
+            session.endSession();
+            throw e;
         }
 
     }
