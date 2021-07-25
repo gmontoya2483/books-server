@@ -1,4 +1,11 @@
-import {ICriteria, INewCopy, IServiceResponse, IUpdateCopies, IUpdateCopiesOutput} from "../interfaces/copy.interfaces";
+import {
+    ICriteria,
+    INewCopy,
+    IServiceResponse,
+    IUpdateCommunity,
+    IUpdateCopies,
+    IUpdateCopiesOutput
+} from "../interfaces/copy.interfaces";
 import {UserService} from "./user.service";
 import {BookService} from "./book.service";
 import {Copy} from "../models/copy.model";
@@ -155,7 +162,7 @@ export abstract class CopyService {
 
         const CopiesToUpdate: any [] = await Copy.find({'book._id': bookId});
         const totalCopiesToUpdate = CopiesToUpdate.length;
-        console.log(totalCopiesToUpdate);
+        // console.log(totalCopiesToUpdate);
 
         let totalUpdatedCopies = 0;
         let ok = false
@@ -179,6 +186,31 @@ export abstract class CopyService {
         ok = (totalUpdatedCopies == totalCopiesToUpdate);
         return {ok, totalCopiesToUpdate, totalUpdatedCopies}
 
+    }
+
+
+    public static async UpdateCopiesOwnerCommunityByOwnerId(ownerId: string, opts: any, community: IUpdateCommunity | null): Promise<IUpdateCopiesOutput> {
+        const CopiesToUpdate: any [] = await Copy.find({'owner._id': ownerId});
+        const totalCopiesToUpdate = CopiesToUpdate.length;
+        // console.log(totalCopiesToUpdate);
+
+        let totalUpdatedCopies = 0;
+        let ok = false
+
+        for (const copy of CopiesToUpdate) {
+            copy.owner.comunidad = community
+            copy.dateTimeUpdated = Date.now()
+            try {
+                await copy.save(opts);
+                //await copy.save(); // localhost
+                totalUpdatedCopies ++;
+            } catch (e) {
+                console.log(e)
+                break;
+            }
+        }
+        ok = (totalUpdatedCopies == totalCopiesToUpdate);
+        return {ok, totalCopiesToUpdate, totalUpdatedCopies}
     }
 
 

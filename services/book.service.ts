@@ -157,7 +157,6 @@ export abstract class BookService {
             console.log(updateCopiesResult);
             if (!updateCopiesResult.ok) throw (`Hubo problemas al odificar las copias: ${JSON.stringify(updateCopiesResult)}`)
 
-            console.log('ups')
             await session.commitTransaction();
             session.endSession();
 

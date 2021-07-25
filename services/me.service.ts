@@ -7,6 +7,8 @@ import {CommunityService} from "./community.service";
 import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
 import {IPagination} from "../interfaces/pagination.interfaces";
 import {Follow} from "../models/follow.models";
+import {IUpdateCopiesOutput} from "../interfaces/copy.interfaces";
+import {CopyService} from "./copy.service";
 
 
 export abstract class MeService{
@@ -136,31 +138,54 @@ export abstract class MeService{
         const token = await me.generateAuthToken();
 
         logger.debug(`Guardar Me en Base de Datos: ${JSON.stringify(me)}`);
-        await me.save();
 
-        // Verificar si el usario no posee comunidad e informar
-        // @ts-ignore
-        if (!me.comunidad) return {
-            status: 200,
-            response: {
-                ok: true,
-                mensaje: `El usuario, ${me.email} no esta suscripto a ningúna comunidad`,
-                me,
-                token
-            }
+        const session = await User.startSession();
+        session.startTransaction();
 
-        };
+        try {
+            const opts = { session };
+            await me.save({session});
 
-        return {
-            status: 200,
-            response: {
-                ok: true,
-                mensaje: `El usuario, ${me.email}, se ha suscripto a la comunidad  '${me.comunidad.name}'`,
-                me,
-                token
-            }
+            // Modificar la comunidad de las copias
+            const updateCopiesResult: IUpdateCopiesOutput = await CopyService.UpdateCopiesOwnerCommunityByOwnerId(meId, opts, me.comunidad);
+            console.log(updateCopiesResult);
+            if (!updateCopiesResult.ok) throw (`Hubo problemas al odificar las copias: ${JSON.stringify(updateCopiesResult)}`)
 
-        };
+            await session.commitTransaction();
+            session.endSession();
+
+
+
+            // Verificar si el usario no posee comunidad e informar
+            // @ts-ignore
+            if (!me.comunidad) return {
+                status: 200,
+                response: {
+                    ok: true,
+                    mensaje: `El usuario, ${me.email} no esta suscripto a ningúna comunidad`,
+                    me,
+                    token
+                }
+
+            };
+
+            return {
+                status: 200,
+                response: {
+                    ok: true,
+                    mensaje: `El usuario, ${me.email}, se ha suscripto a la comunidad  '${me.comunidad.name}'`,
+                    me,
+                    token
+                }
+
+            };
+
+        } catch (e) {
+            console.log('salio por aca')
+            await session.abortTransaction();
+            session.endSession();
+            throw e;
+        }
     }
 
 

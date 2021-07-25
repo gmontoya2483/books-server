@@ -18,6 +18,11 @@ export interface IUpdateCopies {
     genre: IShortGenre;
 }
 
+export interface IUpdateCommunity {
+    _id: string,
+    name: string
+}
+
 export interface IUpdateCopiesOutput {
     ok: boolean;
     totalCopiesToUpdate: number;
