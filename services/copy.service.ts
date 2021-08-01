@@ -236,9 +236,33 @@ export abstract class CopyService {
         }
         ok = (totalUpdatedCopies == totalCopiesToUpdate);
         return {ok, totalCopiesToUpdate, totalUpdatedCopies}
+    }
 
 
+    public static async UpdateCopiesByAuthorId (authorId: string, opts: any , authorName: string, authorLastName: string)
+        : Promise<IUpdateCopiesOutput> {
 
+        const CopiesToUpdate: any [] = await Copy.find({'book.author._id': authorId});
+        const totalCopiesToUpdate = CopiesToUpdate.length;
+
+        let totalUpdatedCopies = 0;
+        let ok = false
+
+        for (const copy of CopiesToUpdate) {
+            copy.book.author.name = authorName;
+            copy.book.author.lastName = authorLastName;
+            copy.dateTimeUpdated = Date.now();
+            try {
+                await copy.save(opts);
+                //await copy.save(); // localhost
+                totalUpdatedCopies ++;
+            } catch (e) {
+                console.log(e)
+                break;
+            }
+        }
+        ok = (totalUpdatedCopies == totalCopiesToUpdate);
+        return {ok, totalCopiesToUpdate, totalUpdatedCopies}
     }
 
 

@@ -280,7 +280,7 @@ export abstract class BookService {
         return Book.find(criteria).sort({'title': 1});
     }
 
-    public static async UpdateBoosByGenreId(genreId: string, opts: any, genreName: string): Promise<IUpdateBooksOutput> {
+    public static async UpdateBooksByGenreId(genreId: string, opts: any, genreName: string): Promise<IUpdateBooksOutput> {
         const BooksToUpdate: any [] = await Book.find({'genre._id': genreId});
         const totalBooksToUpdate = BooksToUpdate.length;
 
@@ -289,6 +289,32 @@ export abstract class BookService {
 
         for (const book of BooksToUpdate) {
             book.genre.name = genreName;
+            book.dateTimeUpdated = Date.now();
+            try {
+                await book.save(opts);
+                totalUpdatedBooks ++;
+            } catch (e) {
+                console.log(e)
+                break;
+            }
+
+        }
+
+        ok = (totalUpdatedBooks == totalBooksToUpdate);
+        return {ok, totalBooksToUpdate, totalUpdatedBooks}
+    }
+
+
+    public static async UpdateBooksByAuthorId(authorId: string, opts: any, authorName: string, authorLastName: string): Promise<IUpdateBooksOutput> {
+        const BooksToUpdate: any [] = await Book.find({'author._id': authorId});
+        const totalBooksToUpdate = BooksToUpdate.length;
+
+        let totalUpdatedBooks = 0;
+        let ok = false
+
+        for (const book of BooksToUpdate) {
+            book.author.name = authorName;
+            book.author.lastName = authorLastName;
             book.dateTimeUpdated = Date.now();
             try {
                 await book.save(opts);

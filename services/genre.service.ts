@@ -150,7 +150,7 @@ export abstract class GenreService {
             }
 
             // Modifica los Libros del genero
-            const updateBooksResult: IUpdateBooksOutput = await BookService.UpdateBoosByGenreId(genreId, opts, name);
+            const updateBooksResult: IUpdateBooksOutput = await BookService.UpdateBooksByGenreId(genreId, opts, name);
             if (!updateBooksResult.ok) throw (`Hubo problemas al modificar los libros: ${JSON.stringify(updateBooksResult)}`);
 
 

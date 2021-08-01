@@ -10,6 +10,10 @@ import {Pagination} from "../classes/pagination.class";
 import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
 
 import {BookService} from "./book.service";
+import {Genre} from "../models/genre.model";
+import {IUpdateBooksOutput} from "../interfaces/book.interfaces";
+import {IUpdateCopiesOutput} from "../interfaces/copy.interfaces";
+import {CopyService} from "./copy.service";
 
 
 
@@ -157,11 +161,10 @@ export abstract class AuthorService {
 
     public static async updateAuthor (authorId: string, {name, lastName}: IUpdateAuthor): Promise<IServiceResponse> {
 
-        //TODO: TRSCL-153 - Agregar transaccion para modificar los libros y los ejemplares
-
         name = name.trim().toUpperCase();
         lastName = lastName.trim().toUpperCase();
 
+        // Busca si el autor esta duplicado
         const duplicateAuthor = await Author.findOne({
             'name': {$regex:  `${name}`, $options:'i'},
             'lastName': {$regex:  `${lastName}`, $options:'i'},
@@ -169,26 +172,54 @@ export abstract class AuthorService {
         });
         if (duplicateAuthor) return this.BadRequestAuthorMessage(`El autor ${ name } ${ lastName} ya existe`);
 
+        const session = await Genre.startSession();
+        session.startTransaction();
 
-        const author = await Author.findByIdAndUpdate(authorId, {
-            $set: {
-                name,
-                lastName,
-                dateTimeUpdated: Date.now()
+        try {
+            const opts = {session};
+
+            const author = await Author.findByIdAndUpdate(authorId, {
+                $set: {
+                    name,
+                    lastName,
+                    dateTimeUpdated: Date.now()
+                }
+            }, {new: true, session: session}); // Si es local host sacar el session: session
+
+            if (!author) {
+                session.endSession();
+                return this.notFoundAuthorMessage();
             }
-        }, {new: true});
 
-        if (!author) return this.notFoundAuthorMessage();
+            // Modifica los Libros del autor
+            const updateBooksResult: IUpdateBooksOutput = await BookService.UpdateBooksByAuthorId(authorId, opts, name, lastName);
+            if (!updateBooksResult.ok) throw (`Hubo problemas al modificar los libros: ${JSON.stringify(updateBooksResult)}`);
 
-        return {
-            status: 200,
-            response: {
-                ok: true,
-                mensaje: `El autor ha sido modificado`,
-                author
-            }
+            // Modifica las Copias del autor
+            const updateCopiesResult: IUpdateCopiesOutput = await CopyService.UpdateCopiesByAuthorId(authorId, opts, name, lastName);
+            if (!updateCopiesResult.ok) throw (`Hubo problemas al modificar las copias: ${JSON.stringify(updateCopiesResult)}`);
 
-        };
+            // Confirmo la transaccion
+            await session.commitTransaction();
+            session.endSession();
+
+            return {
+                status: 200,
+                response: {
+                    ok: true,
+                    mensaje: `El autor ha sido modificado`,
+                    author
+                }
+
+            };
+
+        } catch (e) {
+            console.log('Genre: salio por aca')
+            await session.abortTransaction();
+            session.endSession();
+            throw e;
+        }
+
     }
 
     public static async getBooks(authorId: string,  showDeleted: boolean = false): Promise<IServiceResponse> {
@@ -236,7 +267,4 @@ export abstract class AuthorService {
         };
     }
 
-
-
 }
-
