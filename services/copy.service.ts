@@ -172,7 +172,7 @@ export abstract class CopyService {
             copy.book.description = description;
             copy.book.genre = genre;
             copy.book.author = author;
-            copy.dateTimeUpdated = Date.now()
+            copy.dateTimeUpdated = Date.now();
             try {
                 await copy.save(opts);
                 //await copy.save(); // localhost
@@ -212,6 +212,35 @@ export abstract class CopyService {
         ok = (totalUpdatedCopies == totalCopiesToUpdate);
         return {ok, totalCopiesToUpdate, totalUpdatedCopies}
     }
+
+    public static async UpdateCopiesByGenreId (genreId: string, opts: any , name: string)
+        : Promise<IUpdateCopiesOutput> {
+
+        const CopiesToUpdate: any [] = await Copy.find({'book.genre._id': genreId});
+        const totalCopiesToUpdate = CopiesToUpdate.length;
+
+        let totalUpdatedCopies = 0;
+        let ok = false
+
+        for (const copy of CopiesToUpdate) {
+            copy.book.genre.name = name
+            copy.dateTimeUpdated = Date.now();
+            try {
+                await copy.save(opts);
+                //await copy.save(); // localhost
+                totalUpdatedCopies ++;
+            } catch (e) {
+                console.log(e)
+                break;
+            }
+        }
+        ok = (totalUpdatedCopies == totalCopiesToUpdate);
+        return {ok, totalCopiesToUpdate, totalUpdatedCopies}
+
+
+
+    }
+
 
 
 

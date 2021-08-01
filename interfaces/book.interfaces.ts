@@ -31,3 +31,10 @@ export interface IServiceResponse {
         copies?: {}[];
     }
 }
+
+
+export interface IUpdateBooksOutput {
+    ok: boolean;
+    totalBooksToUpdate: number;
+    totalUpdatedBooks: number;
+}

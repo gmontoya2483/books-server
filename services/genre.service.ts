@@ -2,6 +2,9 @@ import {INewGenre, IServiceResponse, IUpdateGenre} from "../interfaces/genre.int
 import {Genre} from "../models/genre.model";
 import {IDeleteAuthor} from "../interfaces/author.interfaces";
 import {BookService} from "./book.service";
+import {IUpdateBooksOutput} from "../interfaces/book.interfaces";
+import {IUpdateCopiesOutput} from "../interfaces/copy.interfaces";
+import {CopyService} from "./copy.service";
 
 export abstract class GenreService {
 
@@ -128,26 +131,55 @@ export abstract class GenreService {
 
         name = name.trim().toUpperCase();
 
-        // TODO: TRSCL-156 - transaccion para modificar los libros y los ejemplares
-        const genre = await Genre.findByIdAndUpdate(genreId, {
-            $set: {
-                name,
-                dateTimeUpdated: Date.now()
+        const session = await Genre.startSession();
+        session.startTransaction();
+
+        try {
+            const opts = {session};
+
+            const genre = await Genre.findByIdAndUpdate(genreId, {
+                $set: {
+                    name,
+                    dateTimeUpdated: Date.now()
+                }
+            }, {new: true, session: session}); // Si es local host sacar el session: session
+
+            if(!genre) {
+                session.endSession();
+                return this.notFoundGenreMessage();
             }
-        }, {new: true});
 
-        if(!genre) return this.notFoundGenreMessage();
+            // Modifica los Libros del genero
+            const updateBooksResult: IUpdateBooksOutput = await BookService.UpdateBoosByGenreId(genreId, opts, name);
+            if (!updateBooksResult.ok) throw (`Hubo problemas al modificar los libros: ${JSON.stringify(updateBooksResult)}`);
 
-        return {
-            status: 200,
-            response: {
-                ok: true,
-                mensaje: `El género ha sido modificado`,
-                genre
-            }
 
-        };
+            // Modifica las Copias del genero
+            const updateCopiesResult: IUpdateCopiesOutput = await CopyService.UpdateCopiesByGenreId(genreId, opts, name);
+            if (!updateCopiesResult.ok) throw (`Hubo problemas al modificar las copias: ${JSON.stringify(updateCopiesResult)}`);
 
+            // Confirmo la transaccion
+            await session.commitTransaction();
+            session.endSession();
+
+            return {
+                status: 200,
+                response: {
+                    ok: true,
+                    mensaje: `El género ha sido modificado`,
+                    genre
+                }
+
+            };
+
+
+        } catch (e) {
+            console.log('Genre: salio por aca')
+            await session.abortTransaction();
+            session.endSession();
+            throw e;
+
+        }
 
     }
 

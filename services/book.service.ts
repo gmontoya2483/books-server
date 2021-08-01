@@ -1,4 +1,4 @@
-import {INewBook, IServiceResponse, IUpdateBook} from "../interfaces/book.interfaces";
+import {INewBook, IServiceResponse, IUpdateBook, IUpdateBooksOutput} from "../interfaces/book.interfaces";
 import {Book} from "../models/book.model";
 import {AuthorService} from "./author.service";
 import {GenreService} from "./genre.service";
@@ -8,6 +8,7 @@ import {Pagination} from "../classes/pagination.class";
 import {IDeleteAuthor} from "../interfaces/author.interfaces";
 import {CopyService} from "./copy.service";
 import {IUpdateCopiesOutput} from "../interfaces/copy.interfaces";
+import {Copy} from "../models/copy.model";
 
 
 export abstract class BookService {
@@ -155,7 +156,7 @@ export abstract class BookService {
             const updateCopiesResult: IUpdateCopiesOutput = await CopyService.UpdateCopiesByBookId(bookId, opts, {title, description, author, genre });
 
             console.log(updateCopiesResult);
-            if (!updateCopiesResult.ok) throw (`Hubo problemas al odificar las copias: ${JSON.stringify(updateCopiesResult)}`)
+            if (!updateCopiesResult.ok) throw (`Hubo problemas al modificar las copias: ${JSON.stringify(updateCopiesResult)}`)
 
             await session.commitTransaction();
             session.endSession();
@@ -278,4 +279,31 @@ export abstract class BookService {
         }
         return Book.find(criteria).sort({'title': 1});
     }
+
+    public static async UpdateBoosByGenreId(genreId: string, opts: any, genreName: string): Promise<IUpdateBooksOutput> {
+        const BooksToUpdate: any [] = await Book.find({'genre._id': genreId});
+        const totalBooksToUpdate = BooksToUpdate.length;
+
+        let totalUpdatedBooks = 0;
+        let ok = false
+
+        for (const book of BooksToUpdate) {
+            book.genre.name = genreName;
+            book.dateTimeUpdated = Date.now();
+            try {
+                await book.save(opts);
+                totalUpdatedBooks ++;
+            } catch (e) {
+                console.log(e)
+                break;
+            }
+
+        }
+
+        ok = (totalUpdatedBooks == totalBooksToUpdate);
+        return {ok, totalBooksToUpdate, totalUpdatedBooks}
+    }
+
+
+
 }
