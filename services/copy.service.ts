@@ -64,7 +64,6 @@ export abstract class CopyService {
         }
         result.response.copies!.copies = copiesWithFollowing;
 
-
         return result;
 
     }
@@ -76,11 +75,18 @@ export abstract class CopyService {
     }
 
 
+    public static async getAllCopiesByUserIsFollowing(userId: string, search: any = null, {pageNumber = 1, pageSize = DEFAULT_PAGE_SIZE}: IPagination
+        , showDeleted: boolean = false){
+
+        const owners = await FollowService.getArrayAllFollowedByMeConfirmed(userId);
+        return await this.getAllCopies(search, {pageNumber, pageSize}, showDeleted, {userId: null, communityId: null, owners});
+
+    }
 
 
 
     private static async getAllCopies(search: any = null, {pageNumber = 1, pageSize = DEFAULT_PAGE_SIZE}: IPagination
-    , showDeleted: boolean = false, {userId = null, communityId = null}: ICriteria): Promise<IServiceResponse> {
+    , showDeleted: boolean = false, {userId = null, communityId = null, owners = null}: ICriteria): Promise<IServiceResponse> {
 
         // Generat criterio de búsqueda
         let criteria = {};
@@ -98,6 +104,14 @@ export abstract class CopyService {
             criteria = {
                 ...criteria,
                 'owner.comunidad._id': communityId
+            }
+        }
+
+        // Agregar Owners
+        if(owners) {
+            criteria = {
+                ... criteria,
+                'owner._id': { $in: owners}
             }
         }
 

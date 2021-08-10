@@ -4,6 +4,7 @@ import {IPagination} from "../interfaces/pagination.interfaces";
 import {UserService} from "./user.service";
 import {Follow} from "../models/follow.models";
 import {Pagination} from "../classes/pagination.class";
+import mongoose from "mongoose";
 
 export abstract class FollowService{
 
@@ -192,6 +193,19 @@ export abstract class FollowService{
         };
 
     }
+
+    public static async getArrayAllFollowedByMeConfirmed( meId: string) {
+        // Generar criterio de busqueda
+        let criteria = {
+            'follower': meId,
+            'isConfirmed.value': true
+        };
+
+        const follows: any = await Follow.find(criteria).select({follower: 1});
+         // const followings = follows.map((follow: {_id: string, follower: string}) => mongoose.Types.ObjectId(follow.follower))
+        return follows.map((follow: {_id: string, follower: string}) => follow.follower);
+    }
+
 
     public static async getAllFollowedByMe(meId: string,{pageNumber = 1, pageSize = DEFAULT_PAGE_SIZE}: IPagination): Promise<IServiceResponse> {
 
