@@ -201,9 +201,8 @@ export abstract class FollowService{
             'isConfirmed.value': true
         };
 
-        const follows: any = await Follow.find(criteria).select({follower: 1});
-         // const followings = follows.map((follow: {_id: string, follower: string}) => mongoose.Types.ObjectId(follow.follower))
-        return follows.map((follow: {_id: string, follower: string}) => follow.follower);
+        const follows: any = await Follow.find(criteria).select({following: 1});
+        return follows.map((follow: {_id: string, following: string}) => follow.following);
     }
 
 

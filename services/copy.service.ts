@@ -80,7 +80,6 @@ export abstract class CopyService {
 
         const owners = await FollowService.getArrayAllFollowedByMeConfirmed(userId);
         return await this.getAllCopies(search, {pageNumber, pageSize}, showDeleted, {userId: null, communityId: null, owners});
-
     }
 
 
@@ -93,6 +92,7 @@ export abstract class CopyService {
 
         // Agregar UserId
         if(userId){
+            console.log("Tiene userId como owner")
             criteria = {
                 ...criteria,
                 'owner._id': userId
@@ -137,6 +137,7 @@ export abstract class CopyService {
                 'isDeleted.value': false
             }
         }
+
 
         const totalCopies = await Copy.countDocuments(criteria);
         const pagination = await new Pagination(totalCopies,pageNumber, pageSize).getPagination();
