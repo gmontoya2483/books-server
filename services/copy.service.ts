@@ -14,6 +14,7 @@ import {IPagination} from "../interfaces/pagination.interfaces";
 import {Pagination} from "../classes/pagination.class";
 import {FollowService} from "./follow.service";
 import {Book} from "../models/book.model";
+import {MeService} from "./me.service";
 
 
 
@@ -78,8 +79,13 @@ export abstract class CopyService {
     public static async getAllCopiesByUserIsFollowing(userId: string, search: any = null, {pageNumber = 1, pageSize = DEFAULT_PAGE_SIZE}: IPagination
         , showDeleted: boolean = false){
 
+        const myCommunityId = await MeService.getMyCommunityId(userId);
+        if (!myCommunityId){
+            return this.noCopiesResult(pageSize);
+        }
+
         const owners = await FollowService.getArrayAllFollowedByMeConfirmed(userId);
-        return await this.getAllCopies(search, {pageNumber, pageSize}, showDeleted, {userId: null, communityId: null, owners});
+        return await this.getAllCopies(search, {pageNumber, pageSize}, showDeleted, {userId: null, communityId: myCommunityId, owners});
     }
 
 
@@ -92,7 +98,6 @@ export abstract class CopyService {
 
         // Agregar UserId
         if(userId){
-            console.log("Tiene userId como owner")
             criteria = {
                 ...criteria,
                 'owner._id': userId
@@ -137,7 +142,6 @@ export abstract class CopyService {
                 'isDeleted.value': false
             }
         }
-
 
         const totalCopies = await Copy.countDocuments(criteria);
         const pagination = await new Pagination(totalCopies,pageNumber, pageSize).getPagination();
@@ -290,6 +294,33 @@ export abstract class CopyService {
             response: {
                 ok: false,
                 mensaje
+            }
+        };
+    }
+
+
+
+    public static noCopiesResult(pageSize: number) {
+        return {
+            status: 200,
+            response: {
+                ok: true,
+                copies: {
+                    pagination: {
+                        previousPage: null,
+                        currentPage: 1,
+                        nextPage: null,
+                        totalPages: 1,
+                        pageSize,
+                        pages: [1],
+                        showing: {
+                            from: 0,
+                            to: 0,
+                            of: 0
+                        }
+                    },
+                    copies: []
+                }
             }
         };
     }

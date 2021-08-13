@@ -7,9 +7,9 @@ export interface INewCopy {
 
 
 export interface ICriteria {
-    userId?: string | null,
-    communityId?: string | null
-    owners?: string [] | null
+    userId?: string | null;
+    communityId?: string | null;
+    owners?: string [] | null;
 }
 
 export interface IUpdateCopies {

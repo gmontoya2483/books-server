@@ -27,6 +27,19 @@ export abstract class MeService{
     }
 
 
+    public static async getMyCommunityId(meId: string): Promise<string | null>{
+        const me: any  = await UserService.findUser(meId);
+
+        // Si no encuentra al usuario devuelve null
+        if(!me) return null;
+
+        // Si el usuario no tiene comunidad devuelve null
+        if(!me.comunidad) return null;
+
+        return me.comunidad._id
+    }
+
+
     public static async updateMe (meId:string, {paisResidenciaId, nombre, apellido}: IUpdateMe): Promise<IServiceResponse> {
 
         nombre = nombre.trim().toUpperCase();
