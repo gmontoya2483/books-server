@@ -11,6 +11,10 @@ export interface IShortGenre {
     name: string;
 }
 
+export interface IDeleteGenre {
+    isDeleted: boolean;
+}
+
 
 export interface IServiceResponse {
     status: number;

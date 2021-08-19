@@ -1,4 +1,4 @@
-import {INewGenre, IServiceResponse, IUpdateGenre} from "../interfaces/genre.interfaces";
+import {IDeleteGenre, INewGenre, IServiceResponse, IUpdateGenre} from "../interfaces/genre.interfaces";
 import {Genre} from "../models/genre.model";
 import {IDeleteAuthor} from "../interfaces/author.interfaces";
 import {BookService} from "./book.service";
@@ -96,7 +96,7 @@ export abstract class GenreService {
     }
 
 
-    public static async setDeleted (genreId: string, {isDeleted}: IDeleteAuthor): Promise<IServiceResponse>{
+    public static async setDeleted (genreId: string, {isDeleted}: IDeleteGenre): Promise<IServiceResponse>{
 
         const deleted = (isDeleted) ? {value: true, deletedDateTime: Date.now()}
             : {value: false, deletedDateTime: null};

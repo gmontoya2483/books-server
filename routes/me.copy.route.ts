@@ -1,11 +1,13 @@
 import {Request, Response, Router} from "express";
-import {validateNewCopy} from "../middlewares/body_request_validation/copy.body.validatios.middleware";
-import {BookService} from "../services/book.service";
+import {
+    validateDeleteCopy,
+    validateNewCopy
+} from "../middlewares/body_request_validation/copy.body.validatios.middleware";
 import {CopyService} from "../services/copy.service";
 import {IPagination} from "../interfaces/pagination.interfaces";
-import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
 import {ICriteria} from "../interfaces/copy.interfaces";
-import {FollowService} from "../services/follow.service";
+import {GenreService} from "../services/genre.service";
+import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
 
 
 const router = Router();
@@ -54,5 +56,16 @@ router.get('/following', [], async (req:Request, res: Response) => {
     return res.status(returnedResponse.status).json(returnedResponse.response);
 
 });
+
+
+router.put('/:id/delete', [validateDeleteCopy], async (req:Request, res: Response)=>{
+    // @ts-ignore
+    const userId = req.user._id;
+    const returnedResponse = await CopyService.setDeleted(req.params.id, req.body, userId);
+    return res.status(returnedResponse.status).json(returnedResponse.response);
+});
+
+
+
 
 export default router;

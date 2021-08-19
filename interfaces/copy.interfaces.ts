@@ -30,6 +30,10 @@ export interface IUpdateCopiesOutput {
     totalUpdatedCopies: number;
 }
 
+export interface IDeleteCopy {
+    isDeleted: boolean;
+}
+
 
 export interface IServiceResponse {
     status: number;

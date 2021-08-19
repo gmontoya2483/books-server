@@ -1,5 +1,5 @@
 import {
-    ICriteria,
+    ICriteria, IDeleteCopy,
     INewCopy,
     IServiceResponse,
     IUpdateCommunity,
@@ -298,6 +298,16 @@ export abstract class CopyService {
         };
     }
 
+    private static notFoundCopyMessage(mensaje: string = "Ejemplar no encontrado"): IServiceResponse {
+        return {
+            status: 404,
+            response: {
+                ok: false,
+                mensaje
+            }
+        };
+    }
+
 
 
     public static noCopiesResult(pageSize: number) {
@@ -323,6 +333,54 @@ export abstract class CopyService {
                 }
             }
         };
+    }
+
+
+    public static async setDeleted(copyId: string, {isDeleted}: IDeleteCopy, ownerId: string | null = null): Promise<IServiceResponse> {
+
+        const deleted = (isDeleted) ? {value: true, deletedDateTime: Date.now()}
+            : {value: false, deletedDateTime: null};
+
+        let criteria = {};
+
+        criteria = {
+            ... criteria,
+            _id: copyId
+        }
+
+        // Si existe el owner ID
+        if (ownerId) {
+            criteria = {
+                ... criteria,
+                'owner._id': ownerId
+            }
+        }
+
+
+        const copy = await Copy.findOneAndUpdate(criteria, {
+            $set: {
+                isDeleted: deleted,
+                dateTimeUpdated: Date.now()
+            }
+        }, {new: true});
+
+        if(!copy) return this.notFoundCopyMessage();
+
+        const message = (isDeleted) ? `El ejemplar ha sido marcado como eliminado`
+            : `El ejemplar ha sido desmarcado como eliminado`
+
+
+        return {
+            status: 200,
+            response: {
+                ok: true,
+                mensaje: message,
+                copy
+            }
+
+        };
+
+
     }
 
 

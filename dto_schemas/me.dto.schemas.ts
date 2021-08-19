@@ -13,5 +13,6 @@ export const schemas = {
     }),
     following: Joi.object().keys({
         followingUserId: Joi.objectId().required()
-    }),
+    })
+
 };
