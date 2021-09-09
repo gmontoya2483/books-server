@@ -31,6 +31,7 @@ import author from "../routes/author.route"
 import author_admin from "../routes/author.admin.route"
 import book from "../routes/book.route"
 import book_admin from "../routes/book.admin.route"
+import copy_loan from "../routes/copy.loan.route";
 import img from "../routes/img.route"
 
 module.exports = function(server: ServerClass){
@@ -67,8 +68,7 @@ module.exports = function(server: ServerClass){
     server.app.use('/api/authors/admin', [logRequest, isAuthorized, isValidated, isAdmin], author_admin);
     server.app.use('/api/books', [logRequest, isAuthorized, isValidated], book);
     server.app.use('/api/books/admin', [logRequest, isAuthorized, isValidated, isAdmin], book_admin);
-
-
+    server.app.use('/api/copies/loans', [logRequest, isAuthorized, isValidated], copy_loan);
     server.app.use('/api/img', img);
 
     // Error Middleware

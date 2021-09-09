@@ -1,6 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 import {referencedBookSchema} from "./book.model";
 import {referencedUserSchema} from "./user.model";
+import {currentLoanSchema} from "./loan.model";
 
 const copySchema = new Schema({
     book: {
@@ -14,6 +15,10 @@ const copySchema = new Schema({
     isPublic: {
         type: Boolean,
         default: true
+    },
+    currentLoan: {
+        type: currentLoanSchema,
+        default: null
     },
     dateTimeCreated: {
         type: Date,

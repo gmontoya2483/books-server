@@ -1,7 +1,7 @@
 import {
     ICriteria, IDeleteCopy,
     INewCopy,
-    IServiceResponse,
+    IServiceResponse, ISetCopyStatus,
     IUpdateCommunity,
     IUpdateCopies,
     IUpdateCopiesOutput
@@ -15,6 +15,7 @@ import {Pagination} from "../classes/pagination.class";
 import {FollowService} from "./follow.service";
 import {Book} from "../models/book.model";
 import {MeService} from "./me.service";
+import {currentLoanStatusEnum} from "../models/loan.model";
 
 
 
@@ -382,6 +383,62 @@ export abstract class CopyService {
 
 
     }
+
+    public static async setCopyLoanStatus(userId: string, copyId: string, {setStatus}: ISetCopyStatus): Promise<IServiceResponse> {
+        switch (setStatus) {
+            case currentLoanStatusEnum.requested:
+                return this.setCopyLoanStatusRequested(userId, copyId);
+            default:
+                return this.badRequestCopyMessage("Estado del préstamo no válido");
+        }
+
+    }
+
+
+    private static async  setCopyLoanStatusRequested(userId: string, copyId: string):  Promise<IServiceResponse> {
+        // Buscar la copia
+        const copy = await Copy.findById(copyId);
+        if(!copy) return this.notFoundCopyMessage();
+
+        // Verificar que la copia no tenga un currentLoan
+        if(copy.currentLoan) return this.badRequestCopyMessage("El ejemplar ya ha sido prestado");
+
+        // Buscar el usuario
+        const requester = await UserService.findUser(userId);
+        if(!requester) return this.badRequestCopyMessage("Usuario no encontrado");
+
+        // verificar que la comunidad del usuario sea igual a la comunidad del owner de la copia
+        if(!copy.owner.comunidad._id.equals(requester.comunidad._id)) return this.badRequestCopyMessage("El Usuario no pertenece a la misma comunidad que el dueño de la copia");
+
+        // Verificar que el usuario este siguiendo al owner y que este confirmada
+        if(!await FollowService.getIfUserAFollowsUserB(userId, copy.owner._id)) return this.badRequestCopyMessage("El Usuario no sigue al dueño de la copia");
+
+        // Agregar el loan request a la copia
+        const currentLoan = {
+            user : requester,
+            status: currentLoanStatusEnum.requested,
+            dateTimeRequested: Date.now()
+        }
+        copy.currentLoan = currentLoan;
+        copy.dateTimeUpdated = Date.now();
+
+        // Guardar copia marcada como pedida en prestamo
+        await copy.save();
+
+        const message = "El ejemplar ha sido pedido prestado"
+
+        return {
+            status: 200,
+            response: {
+                ok: true,
+                mensaje: message,
+                copy
+            }
+        };
+    }
+
+
+
 
 
 }

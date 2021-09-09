@@ -1,5 +1,6 @@
 import {IShortAuthor} from "./author.interfaces";
 import {IShortGenre} from "./genre.interfaces";
+import {currentLoanStatusEnum} from "../models/loan.model";
 
 export interface INewCopy {
     bookId: string;
@@ -32,6 +33,10 @@ export interface IUpdateCopiesOutput {
 
 export interface IDeleteCopy {
     isDeleted: boolean;
+}
+
+export interface ISetCopyStatus {
+    setStatus: currentLoanStatusEnum
 }
 
 

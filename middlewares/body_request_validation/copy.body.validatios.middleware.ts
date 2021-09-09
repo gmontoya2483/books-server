@@ -27,3 +27,12 @@ export const  validateDeleteCopy = function (req: Request, res: Response, next: 
         })
         : next();
 }
+
+export const  validateSetCopyLoanStatus = function (req: Request, res: Response, next: NextFunction) {
+    const { error, value } = schemas.setLoanStatus.validate(req.body);
+    error ? res.status(422).json({
+            ok: false,
+            mensaje: error.details[0].message.replace(/['"]+/g, "")
+        })
+        : next();
+}

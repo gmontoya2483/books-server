@@ -239,8 +239,6 @@ export abstract class UserService {
                 usuario: user
             }
         };
-
-
     }
 
 
