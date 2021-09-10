@@ -1,7 +1,9 @@
 import {
-    ICriteria, IDeleteCopy,
+    ICriteria,
+    IDeleteCopy,
     INewCopy,
-    IServiceResponse, ISetCopyStatus,
+    IServiceResponse,
+    ISetCopyStatus,
     IUpdateCommunity,
     IUpdateCopies,
     IUpdateCopiesOutput
@@ -13,10 +15,8 @@ import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
 import {IPagination} from "../interfaces/pagination.interfaces";
 import {Pagination} from "../classes/pagination.class";
 import {FollowService} from "./follow.service";
-import {Book} from "../models/book.model";
 import {MeService} from "./me.service";
 import {currentLoanStatusEnum} from "../models/loan.model";
-
 
 
 export abstract class CopyService {
@@ -388,14 +388,15 @@ export abstract class CopyService {
         switch (setStatus) {
             case currentLoanStatusEnum.requested:
                 return this.setCopyLoanStatusRequested(userId, copyId);
+            case currentLoanStatusEnum.cancelled:
+                return this.setCopyLoanStatusCancelled(userId, copyId);
             default:
                 return this.badRequestCopyMessage("Estado del préstamo no válido");
         }
-
     }
 
 
-    private static async  setCopyLoanStatusRequested(userId: string, copyId: string):  Promise<IServiceResponse> {
+    private static async  setCopyLoanStatusRequested(RequesterUserId: string, copyId: string):  Promise<IServiceResponse> {
         // Buscar la copia
         const copy = await Copy.findById(copyId);
         if(!copy) return this.notFoundCopyMessage();
@@ -404,14 +405,14 @@ export abstract class CopyService {
         if(copy.currentLoan) return this.badRequestCopyMessage("El ejemplar ya ha sido prestado");
 
         // Buscar el usuario
-        const requester = await UserService.findUser(userId);
+        const requester = await UserService.findUser(RequesterUserId);
         if(!requester) return this.badRequestCopyMessage("Usuario no encontrado");
 
         // verificar que la comunidad del usuario sea igual a la comunidad del owner de la copia
         if(!copy.owner.comunidad._id.equals(requester.comunidad._id)) return this.badRequestCopyMessage("El Usuario no pertenece a la misma comunidad que el dueño de la copia");
 
         // Verificar que el usuario este siguiendo al owner y que este confirmada
-        if(!await FollowService.getIfUserAFollowsUserB(userId, copy.owner._id)) return this.badRequestCopyMessage("El Usuario no sigue al dueño de la copia");
+        if(!await FollowService.getIfUserAFollowsUserB(RequesterUserId, copy.owner._id)) return this.badRequestCopyMessage("El Usuario no sigue al dueño de la copia");
 
         // Agregar el loan request a la copia
         const currentLoan = {
@@ -426,6 +427,39 @@ export abstract class CopyService {
         await copy.save();
 
         const message = "El ejemplar ha sido pedido prestado"
+
+        return {
+            status: 200,
+            response: {
+                ok: true,
+                mensaje: message,
+                copy
+            }
+        };
+    }
+
+
+    private static async  setCopyLoanStatusCancelled(RequesterUserId: string, copyId: string):  Promise<IServiceResponse> {
+        // Buscar la copia
+        const copy = await Copy.findById(copyId);
+        if(!copy) return this.notFoundCopyMessage();
+
+        // Verificar que la copia tenga un currentLoan
+        if(!copy.currentLoan) return this.badRequestCopyMessage("No existe un pedido de prestamo del ejemplar");
+
+        // Verificar que el Requester haya pedido prestado el ejemplar
+        if (copy.currentLoan && !copy.currentLoan.user._id.equals(RequesterUserId)) return this.badRequestCopyMessage("No tienes un pedido de prestamo de este ejemplar");
+
+        // Verificar que el Prestamo se encuentré en estado solicitado
+        if (copy.currentLoan && copy.currentLoan.status !== currentLoanStatusEnum.requested) return this.badRequestCopyMessage("El estado del presatamo no es Solicitado");
+
+        copy.currentLoan = null;
+        copy.dateTimeUpdated = Date.now();
+
+        // Guardar copia marcada como pedida en prestamo
+        await copy.save();
+
+        const message = "El pedido de prestamo ha sido cancelado"
 
         return {
             status: 200,
