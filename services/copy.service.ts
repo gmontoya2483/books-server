@@ -11,7 +11,7 @@ import {
 import {UserService} from "./user.service";
 import {BookService} from "./book.service";
 import {Copy} from "../models/copy.model";
-import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
+import {DEFAULT_PAGE_SIZE, MAX_ALLOWED_BORROWED} from "../globals/environment.global";
 import {IPagination} from "../interfaces/pagination.interfaces";
 import {Pagination} from "../classes/pagination.class";
 import {FollowService} from "./follow.service";
@@ -384,6 +384,10 @@ export abstract class CopyService {
 
     }
 
+    public static async getQtyOfActiveBorrowsByRequester(requesterId: string): Promise<number> {
+        return Copy.countDocuments({'currentLoan.user._id': requesterId});
+    }
+
     public static async setCopyLoanStatus(userId: string, copyId: string, {setStatus}: ISetCopyStatus): Promise<IServiceResponse> {
         switch (setStatus) {
             case currentLoanStatusEnum.requested:
@@ -402,17 +406,26 @@ export abstract class CopyService {
         if(!copy) return this.notFoundCopyMessage();
 
         // Verificar que la copia no tenga un currentLoan
-        if(copy.currentLoan) return this.badRequestCopyMessage("El ejemplar ya ha sido prestado");
+        if(copy.currentLoan)
+            return this.badRequestCopyMessage("El ejemplar ya ha sido prestado");
 
         // Buscar el usuario
         const requester = await UserService.findUser(RequesterUserId);
-        if(!requester) return this.badRequestCopyMessage("Usuario no encontrado");
+        if(!requester)
+            return this.badRequestCopyMessage("Usuario no encontrado");
 
         // verificar que la comunidad del usuario sea igual a la comunidad del owner de la copia
-        if(!copy.owner.comunidad._id.equals(requester.comunidad._id)) return this.badRequestCopyMessage("El Usuario no pertenece a la misma comunidad que el dueño de la copia");
+        if(!copy.owner.comunidad._id.equals(requester.comunidad._id))
+            return this.badRequestCopyMessage("El Usuario no pertenece a la misma comunidad que el dueño de la copia");
 
         // Verificar que el usuario este siguiendo al owner y que este confirmada
-        if(!await FollowService.getIfUserAFollowsUserB(RequesterUserId, copy.owner._id)) return this.badRequestCopyMessage("El Usuario no sigue al dueño de la copia");
+        if(!await FollowService.getIfUserAFollowsUserB(RequesterUserId, copy.owner._id))
+            return this.badRequestCopyMessage("El Usuario no sigue al dueño de la copia");
+
+        // Verficar que el requester no haya alcanzado la cantidad máxima de prestamos
+        if (await this.getQtyOfActiveBorrowsByRequester(RequesterUserId) >= MAX_ALLOWED_BORROWED)
+            return this.badRequestCopyMessage("El usuario alcanzó la cantidad máxima de prestamos.");
+
 
         // Agregar el loan request a la copia
         const currentLoan = {

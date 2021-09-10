@@ -33,5 +33,8 @@ export const DEFAULT_PAGE_SIZE: number = config.get('pagination.DEFAULT_PAGE_SIZ
 // Password passwordComplexityOptions
 export const PASSWORD_COMPLEXITY_OPTIONS = config.get('passwordComplexityOptions');
 
+// Loans
+export const MAX_ALLOWED_BORROWED: number = config.get('loans.maxAllowedBorrowed');
+
 
 

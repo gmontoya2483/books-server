@@ -35,5 +35,8 @@
     "numeric": 1,
     "symbol": 1,
     "requirementCount": 4
+  },
+  "loans": {
+    "maxAllowedBorrowed": 1
   }
 }
