@@ -71,9 +71,12 @@ export abstract class CopyService {
     }
 
 
-    public static async getAllCopiesByUser(search: any = null, {pageNumber = 1, pageSize = DEFAULT_PAGE_SIZE}: IPagination
-        , showDeleted: boolean = false, { userId }: ICriteria): Promise<IServiceResponse> {
-        return await this.getAllCopies(search, {pageNumber, pageSize}, showDeleted, {userId, communityId: null});
+    public static async getAllCopiesByUser(search: any = null,
+                                           {pageNumber = 1, pageSize = DEFAULT_PAGE_SIZE}: IPagination,
+                                           showDeleted: boolean = false,
+                                           { userId }: ICriteria,
+                                           showOnlyBorrowed: boolean = false): Promise<IServiceResponse> {
+        return await this.getAllCopies(search, {pageNumber, pageSize}, showDeleted, {userId, communityId: null}, showOnlyBorrowed);
     }
 
 
@@ -91,8 +94,11 @@ export abstract class CopyService {
 
 
 
-    private static async getAllCopies(search: any = null, {pageNumber = 1, pageSize = DEFAULT_PAGE_SIZE}: IPagination
-    , showDeleted: boolean = false, {userId = null, communityId = null, owners = null}: ICriteria): Promise<IServiceResponse> {
+    private static async getAllCopies(search: any = null,
+                                      {pageNumber = 1, pageSize = DEFAULT_PAGE_SIZE}: IPagination,
+                                      showDeleted: boolean = false,
+                                      {userId = null, communityId = null, owners = null}: ICriteria,
+                                      showOnlyBorrowed: boolean = false): Promise<IServiceResponse> {
 
         // Generat criterio de búsqueda
         let criteria = {};
@@ -141,6 +147,14 @@ export abstract class CopyService {
             criteria = {
                 ... criteria,
                 'isDeleted.value': false
+            }
+        }
+
+        // Verificar si se muestran sólo lo ejemplares prestados
+        if (showOnlyBorrowed) {
+            criteria = {
+                ... criteria,
+                'currentLoan': {$ne: null}
             }
         }
 
@@ -394,6 +408,10 @@ export abstract class CopyService {
                 return this.setCopyLoanStatusRequested(userId, copyId);
             case currentLoanStatusEnum.cancelled:
                 return this.setCopyLoanStatusCancelled(userId, copyId);
+            case currentLoanStatusEnum.accepted:
+                return this.setCopyLoanStatusAccepted(userId, copyId);
+            case currentLoanStatusEnum.rejected:
+                return this.setCopyLoanStatusRejected(userId, copyId);
             default:
                 return this.badRequestCopyMessage("Estado del préstamo no válido");
         }
@@ -416,11 +434,11 @@ export abstract class CopyService {
 
         // verificar que la comunidad del usuario sea igual a la comunidad del owner de la copia
         if(!copy.owner.comunidad._id.equals(requester.comunidad._id))
-            return this.badRequestCopyMessage("El Usuario no pertenece a la misma comunidad que el dueño de la copia");
+            return this.badRequestCopyMessage("El Usuario no pertenece a la misma comunidad que el dueño del ejemplar");
 
         // Verificar que el usuario este siguiendo al owner y que este confirmada
         if(!await FollowService.getIfUserAFollowsUserB(RequesterUserId, copy.owner._id))
-            return this.badRequestCopyMessage("El Usuario no sigue al dueño de la copia");
+            return this.badRequestCopyMessage("El usuario no sigue al dueño del ejemplar");
 
         // Verficar que el requester no haya alcanzado la cantidad máxima de prestamos
         if (await this.getQtyOfActiveBorrowsByRequester(RequesterUserId) >= MAX_ALLOWED_BORROWED)
@@ -472,6 +490,8 @@ export abstract class CopyService {
         // Guardar copia marcada como pedida en prestamo
         await copy.save();
 
+        //TODO: Enviar mail al owner indicando con los datos del requester indicando que se ke ha solicitado prestado un ejemplar
+
         const message = "El pedido de prestamo ha sido cancelado"
 
         return {
@@ -482,6 +502,84 @@ export abstract class CopyService {
                 copy
             }
         };
+    }
+
+
+    private static async  setCopyLoanStatusAccepted(ownerId: string, copyId: string):  Promise<IServiceResponse> {
+
+        // Buscar la copia
+        const copy = await Copy.findById(copyId);
+        if(!copy) return this.notFoundCopyMessage();
+
+        // Verificar que sea el owner del ejemplar
+        if(!copy.owner._id.equals(ownerId)) return this.badRequestCopyMessage("El usuario no es el dueño del ejemplar");
+
+        // Verificar que la copia tenga un currentLoan
+        if(!copy.currentLoan) return this.badRequestCopyMessage("No existe un pedido de prestamo del ejemplar");
+
+        // Verificar que el Prestamo se encuentré en estado solicitado
+        if (copy.currentLoan && copy.currentLoan.status !== currentLoanStatusEnum.requested) return this.badRequestCopyMessage("El estado del presatamo no es Solicitado");
+
+        copy.currentLoan.status = currentLoanStatusEnum.accepted;
+        copy.currentLoan.dateTimeAccepted = Date.now();
+        copy.dateTimeUpdated = Date.now();
+
+        // Guardar copia marcada como prestamos aceptado
+        await copy.save();
+
+        //TODO: Enviar mail al requester con datos del owner
+
+        const message = "El pedido de prestamo ha sido aceptado. El usuario que solicitó el prestamo recibirá  un email con sus datos para poder contactarlo."
+
+        return {
+            status: 200,
+            response: {
+                ok: true,
+                mensaje: message,
+                copy
+            }
+        };
+
+    }
+
+
+    private static async  setCopyLoanStatusRejected(ownerId: string, copyId: string):  Promise<IServiceResponse> {
+
+        // Buscar la copia
+        const copy = await Copy.findById(copyId);
+        if(!copy) return this.notFoundCopyMessage();
+
+        // Verificar que sea el owner del ejemplar
+        if(!copy.owner._id.equals(ownerId)) return this.badRequestCopyMessage("El usuario no es el dueño del ejemplar");
+
+        // Verificar que la copia tenga un currentLoan
+        if(!copy.currentLoan) return this.badRequestCopyMessage("No existe un pedido de prestamo del ejemplar");
+
+        // Verificar que el Prestamo se encuentré en estado solicitado o aceptado
+        if (copy.currentLoan
+            && (copy.currentLoan.status !== currentLoanStatusEnum.requested && copy.currentLoan.status !== currentLoanStatusEnum.accepted)
+        )
+            return this.badRequestCopyMessage("El estado del presatamo no es valido para ser rechazado");
+
+        copy.currentLoan = null;
+        copy.dateTimeUpdated = Date.now();
+
+        // Guardar copia marcada como prestamos aceptado
+        await copy.save();
+
+        //TODO: Enviar mail al requester informando que le owner no acerpto prestarle el ejemplar.
+
+        const message = "El pedido de prestamo ha sido rechazado."
+
+        return {
+            status: 200,
+            response: {
+                ok: true,
+                mensaje: message,
+                copy
+            }
+        };
+
     }
 
 

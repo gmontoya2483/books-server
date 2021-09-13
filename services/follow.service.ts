@@ -184,7 +184,7 @@ export abstract class FollowService{
         await follow.save();
 
         return {
-            status: 200,
+            status: 201,
             response: {
                 ok: true,
                 mensaje: `La solicitud para seguir al usuario ${following.nombre} ${following.apellido} fue agregada`,

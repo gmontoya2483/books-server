@@ -20,9 +20,9 @@ router.post('/', [validateNewCopy], async (req:Request, res: Response)=>{
 });
 
 router.get('/', [], async (req:Request, res: Response)=>{
-
     const search = req.query.search || null;
     const showDeleted  = req.query.showDeleted === 'true';
+    const showOnlyBorrowed = req.query.showOnlyBorrowed === 'true';
     const pagination: IPagination = {
         pageNumber: Number(req.query.page) || 1,
         pageSize : Number(req.query.pageSize) || DEFAULT_PAGE_SIZE
@@ -33,9 +33,8 @@ router.get('/', [], async (req:Request, res: Response)=>{
         userId: req.user._id
     };
 
-    const returnedResponse = await CopyService.getAllCopiesByUser(search, pagination, showDeleted, criteria);
+    const returnedResponse = await CopyService.getAllCopiesByUser(search, pagination, showDeleted, criteria, showOnlyBorrowed);
     return res.status(returnedResponse.status).json(returnedResponse.response);
-
 });
 
 router.get('/following', [], async (req:Request, res: Response) => {
