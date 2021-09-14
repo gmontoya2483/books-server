@@ -412,6 +412,8 @@ export abstract class CopyService {
                 return this.setCopyLoanStatusAccepted(userId, copyId);
             case currentLoanStatusEnum.rejected:
                 return this.setCopyLoanStatusRejected(userId, copyId);
+            case currentLoanStatusEnum.borrowed:
+                return this.setCopyLoanStatusBorrowed(userId, copyId);
             default:
                 return this.badRequestCopyMessage("Estado del préstamo no válido");
         }
@@ -457,7 +459,9 @@ export abstract class CopyService {
         // Guardar copia marcada como pedida en prestamo
         await copy.save();
 
-        const message = "El ejemplar ha sido pedido prestado"
+        //TODO: TRSCL-218 - Enviar mail al owner con los datos del requester, indicando que se le ha solicitado prestado el ejemplar
+
+        const message = `El ejemplar ${ copy.book.title } ha sido pedido prestado a ${ copy.owner.nombre } ${ copy.owner.apellido }`
 
         return {
             status: 200,
@@ -490,9 +494,7 @@ export abstract class CopyService {
         // Guardar copia marcada como pedida en prestamo
         await copy.save();
 
-        //TODO: Enviar mail al owner indicando con los datos del requester indicando que se ke ha solicitado prestado un ejemplar
-
-        const message = "El pedido de prestamo ha sido cancelado"
+        const message = `El pedido de prestamo del ejemplar ${ copy.book.title } a ${ copy.owner.nombre } ${ copy.owner.apellido } ha sido cancelado.`
 
         return {
             status: 200,
@@ -527,9 +529,11 @@ export abstract class CopyService {
         // Guardar copia marcada como prestamos aceptado
         await copy.save();
 
-        //TODO: Enviar mail al requester con datos del owner
+        //TODO: TRSCL-219 - Enviar mail al requester con datos del owner para que pueda contactarlo.
 
-        const message = "El pedido de prestamo ha sido aceptado. El usuario que solicitó el prestamo recibirá  un email con sus datos para poder contactarlo."
+        const message = `El pedido de prestamo del ejemplar ${ copy.book.title } ha sido aceptado. Se le va a enviar 
+        un email con sus datos a ${copy.currentLoan.user.nombre} ${copy.currentLoan.user.apellido } para que pueda
+         contactarlo y acordar la entrega.`
 
         return {
             status: 200,
@@ -561,15 +565,23 @@ export abstract class CopyService {
         )
             return this.badRequestCopyMessage("El estado del presatamo no es valido para ser rechazado");
 
+        // Se guarda los datos del requester para las notificaciones
+        const requesterInfo = {
+            nombre : copy.currentLoan.user.nombre,
+            apellido: copy.currentLoan.user.apellido,
+            email: copy.currentLoan.user.email,
+        }
+
         copy.currentLoan = null;
         copy.dateTimeUpdated = Date.now();
 
-        // Guardar copia marcada como prestamos aceptado
+        // Guardar copia marcada como prestamos rechazado
         await copy.save();
 
-        //TODO: Enviar mail al requester informando que le owner no acerpto prestarle el ejemplar.
+        //TODO: TRSCL-220 - Enviar mail al requester informando que le owner no acerpto prestarle el ejemplar.
 
-        const message = "El pedido de prestamo ha sido rechazado."
+        const message = `El pedido de prestamo del ejemplar ${ copy.book.title } ha sido rechazado. Se le va a enviar 
+        un email a ${requesterInfo.nombre} ${requesterInfo.apellido } para informarle su decisión.`
 
         return {
             status: 200,
@@ -583,7 +595,41 @@ export abstract class CopyService {
     }
 
 
+    private static async  setCopyLoanStatusBorrowed(ownerId: string, copyId: string):  Promise<IServiceResponse> {
 
+        // Buscar la copia
+        const copy = await Copy.findById(copyId);
+        if(!copy) return this.notFoundCopyMessage();
 
+        // Verificar que sea el owner del ejemplar
+        if(!copy.owner._id.equals(ownerId)) return this.badRequestCopyMessage("El usuario no es el dueño del ejemplar");
+
+        // Verificar que la copia tenga un currentLoan
+        if(!copy.currentLoan) return this.badRequestCopyMessage("No existe un pedido de prestamo del ejemplar");
+
+        // Verificar que el Prestamo se encuentré en estado aceptado
+        if (copy.currentLoan && (copy.currentLoan.status !== currentLoanStatusEnum.accepted))
+            return this.badRequestCopyMessage("El estado del presatamo no es valido para ser rechazado");
+
+        copy.currentLoan.status = currentLoanStatusEnum.borrowed;
+        copy.currentLoan.dateTimeBorrowed = Date.now();
+        copy.dateTimeUpdated = Date.now();
+
+        // Guardar copia marcada como prestada
+        await copy.save();
+
+        const message = `El ejemplar ${ copy.book.title } ha sido prestado a ${ copy.currentLoan.user.nombre }
+         ${ copy.currentLoan.user.apellido } `
+
+        return {
+            status: 200,
+            response: {
+                ok: true,
+                mensaje: message,
+                copy
+            }
+        };
+
+    }
 
 }

@@ -2,16 +2,6 @@ import {Schema} from "mongoose";
 import {referencedUserSchema} from "./user.model";
 import Joi from "@hapi/joi";
 
-// export const currentLoanStatusEnum = {
-//     requested: 'Requerido',
-//     accepted: 'Aceptado',
-//     rejected: 'Rechazado',
-//     borrowed: 'Prestado',
-//     claimed: 'Reclamado',
-//     returned: 'Devuelto',
-//     returnedConfirmation: 'Confirmado'
-// }
-
 
 export enum currentLoanStatusEnum  {
     requested = 'Requerido',
