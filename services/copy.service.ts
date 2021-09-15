@@ -414,6 +414,8 @@ export abstract class CopyService {
                 return this.setCopyLoanStatusRejected(userId, copyId);
             case currentLoanStatusEnum.borrowed:
                 return this.setCopyLoanStatusBorrowed(userId, copyId);
+            case currentLoanStatusEnum.claimed:
+                return this.setCopyLoanStatusClaimed(userId, copyId);
             default:
                 return this.badRequestCopyMessage("Estado del préstamo no válido");
         }
@@ -605,11 +607,11 @@ export abstract class CopyService {
         if(!copy.owner._id.equals(ownerId)) return this.badRequestCopyMessage("El usuario no es el dueño del ejemplar");
 
         // Verificar que la copia tenga un currentLoan
-        if(!copy.currentLoan) return this.badRequestCopyMessage("No existe un pedido de prestamo del ejemplar");
+        if(!copy.currentLoan) return this.badRequestCopyMessage("No existe un prestamo activo del ejemplar");
 
         // Verificar que el Prestamo se encuentré en estado aceptado
         if (copy.currentLoan && (copy.currentLoan.status !== currentLoanStatusEnum.accepted))
-            return this.badRequestCopyMessage("El estado del presatamo no es valido para ser rechazado");
+            return this.badRequestCopyMessage("El estado del presatamo no es valido para ser prestado");
 
         copy.currentLoan.status = currentLoanStatusEnum.borrowed;
         copy.currentLoan.dateTimeBorrowed = Date.now();
@@ -631,5 +633,48 @@ export abstract class CopyService {
         };
 
     }
+
+    private static async  setCopyLoanStatusClaimed(ownerId: string, copyId: string):  Promise<IServiceResponse> {
+
+        // Buscar la copia
+        const copy = await Copy.findById(copyId);
+        if(!copy) return this.notFoundCopyMessage();
+
+        // Verificar que sea el owner del ejemplar
+        if(!copy.owner._id.equals(ownerId)) return this.badRequestCopyMessage("El usuario no es el dueño del ejemplar");
+
+        // Verificar que la copia tenga un currentLoan
+        if(!copy.currentLoan) return this.badRequestCopyMessage("No existe un prestamo activo del ejemplar");
+
+        // Verificar que el Prestamo se encuentré en estado aceptado
+        if (copy.currentLoan && (copy.currentLoan.status !== currentLoanStatusEnum.borrowed))
+            return this.badRequestCopyMessage("El estado del presatamo no es valido para ser reclamado");
+
+        copy.currentLoan.status = currentLoanStatusEnum.claimed;
+        copy.currentLoan.dateTimeClaimed = Date.now();
+        copy.dateTimeUpdated = Date.now();
+
+        // Guardar copia marcada como prestada
+        await copy.save();
+
+        //TODO: TRSCL-224 - Enviar mail al requester informando que el owner desea que le devuelva el ejemplar prestado.
+
+        const message = `Se solicito la devolución del ejemplar ${ copy.book.title }. Se le va a enviar 
+        un email a    ${copy.currentLoan.user.nombre } ${copy.currentLoan.user.apellido } para informarle que debe devolver el 
+        ejemplar que le has prestado.`
+
+        return {
+            status: 200,
+            response: {
+                ok: true,
+                mensaje: message,
+                copy
+            }
+        };
+
+
+
+    }
+
 
 }
