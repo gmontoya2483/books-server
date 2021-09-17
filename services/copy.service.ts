@@ -80,8 +80,11 @@ export abstract class CopyService {
     }
 
 
-    public static async getAllCopiesByUserIsFollowing(userId: string, search: any = null, {pageNumber = 1, pageSize = DEFAULT_PAGE_SIZE}: IPagination
-        , showDeleted: boolean = false){
+    public static async getAllCopiesByUserIsFollowing(userId: string,
+                                                      search: any = null,
+                                                      {pageNumber = 1, pageSize = DEFAULT_PAGE_SIZE}: IPagination,
+                                                      showDeleted: boolean = false,
+                                                      showOnlyBorrowedToMe: boolean =  false){
 
         const myCommunityId = await MeService.getMyCommunityId(userId);
         if (!myCommunityId){
@@ -89,7 +92,13 @@ export abstract class CopyService {
         }
 
         const owners = await FollowService.getArrayAllFollowedByMeConfirmed(userId);
-        return await this.getAllCopies(search, {pageNumber, pageSize}, showDeleted, {userId: null, communityId: myCommunityId, owners});
+        return await this.getAllCopies(search,
+            {pageNumber, pageSize},
+            showDeleted,
+            {userId: null, communityId: myCommunityId, owners},
+            false,
+            showOnlyBorrowedToMe,
+            userId);
     }
 
 
@@ -98,7 +107,9 @@ export abstract class CopyService {
                                       {pageNumber = 1, pageSize = DEFAULT_PAGE_SIZE}: IPagination,
                                       showDeleted: boolean = false,
                                       {userId = null, communityId = null, owners = null}: ICriteria,
-                                      showOnlyBorrowed: boolean = false): Promise<IServiceResponse> {
+                                      showOnlyBorrowed: boolean = false,
+                                      showOnlyBorrowedToMe: boolean = false,
+                                      requesterUserId: string | null = null): Promise<IServiceResponse> {
 
         // Generat criterio de búsqueda
         let criteria = {};
@@ -155,6 +166,14 @@ export abstract class CopyService {
             criteria = {
                 ... criteria,
                 'currentLoan': {$ne: null}
+            }
+        }
+
+        // Verificar si se muestran sólo lo ejemplares que me han prestado
+        if (showOnlyBorrowedToMe) {
+            criteria = {
+                ... criteria,
+                'currentLoan.user._id': requesterUserId
             }
         }
 
@@ -416,6 +435,8 @@ export abstract class CopyService {
                 return this.setCopyLoanStatusBorrowed(userId, copyId);
             case currentLoanStatusEnum.claimed:
                 return this.setCopyLoanStatusClaimed(userId, copyId);
+            case currentLoanStatusEnum.returned:
+                return this.setCopyLoanStatusReturned(userId, copyId);
             default:
                 return this.badRequestCopyMessage("Estado del préstamo no válido");
         }
@@ -476,19 +497,22 @@ export abstract class CopyService {
     }
 
 
-    private static async  setCopyLoanStatusCancelled(RequesterUserId: string, copyId: string):  Promise<IServiceResponse> {
+    private static async  setCopyLoanStatusCancelled(requesterUserId: string, copyId: string):  Promise<IServiceResponse> {
         // Buscar la copia
         const copy = await Copy.findById(copyId);
         if(!copy) return this.notFoundCopyMessage();
 
         // Verificar que la copia tenga un currentLoan
-        if(!copy.currentLoan) return this.badRequestCopyMessage("No existe un pedido de prestamo del ejemplar");
+        if(!copy.currentLoan)
+            return this.badRequestCopyMessage("No existe un pedido de prestamo del ejemplar");
 
         // Verificar que el Requester haya pedido prestado el ejemplar
-        if (copy.currentLoan && !copy.currentLoan.user._id.equals(RequesterUserId)) return this.badRequestCopyMessage("No tienes un pedido de prestamo de este ejemplar");
+        if (copy.currentLoan && !copy.currentLoan.user._id.equals(requesterUserId))
+            return this.badRequestCopyMessage("No tienes un pedido de prestamo de este ejemplar");
 
         // Verificar que el Prestamo se encuentré en estado solicitado
-        if (copy.currentLoan && copy.currentLoan.status !== currentLoanStatusEnum.requested) return this.badRequestCopyMessage("El estado del presatamo no es Solicitado");
+        if (copy.currentLoan && copy.currentLoan.status !== currentLoanStatusEnum.requested)
+            return this.badRequestCopyMessage("El estado del presatamo no es Solicitado");
 
         copy.currentLoan = null;
         copy.dateTimeUpdated = Date.now();
@@ -513,16 +537,20 @@ export abstract class CopyService {
 
         // Buscar la copia
         const copy = await Copy.findById(copyId);
-        if(!copy) return this.notFoundCopyMessage();
+        if(!copy)
+            return this.notFoundCopyMessage();
 
         // Verificar que sea el owner del ejemplar
-        if(!copy.owner._id.equals(ownerId)) return this.badRequestCopyMessage("El usuario no es el dueño del ejemplar");
+        if(!copy.owner._id.equals(ownerId))
+            return this.badRequestCopyMessage("El usuario no es el dueño del ejemplar");
 
         // Verificar que la copia tenga un currentLoan
-        if(!copy.currentLoan) return this.badRequestCopyMessage("No existe un pedido de prestamo del ejemplar");
+        if(!copy.currentLoan)
+            return this.badRequestCopyMessage("No existe un pedido de prestamo del ejemplar");
 
         // Verificar que el Prestamo se encuentré en estado solicitado
-        if (copy.currentLoan && copy.currentLoan.status !== currentLoanStatusEnum.requested) return this.badRequestCopyMessage("El estado del presatamo no es Solicitado");
+        if (copy.currentLoan && copy.currentLoan.status !== currentLoanStatusEnum.requested)
+            return this.badRequestCopyMessage("El estado del presatamo no es Solicitado");
 
         copy.currentLoan.status = currentLoanStatusEnum.accepted;
         copy.currentLoan.dateTimeAccepted = Date.now();
@@ -553,17 +581,21 @@ export abstract class CopyService {
 
         // Buscar la copia
         const copy = await Copy.findById(copyId);
-        if(!copy) return this.notFoundCopyMessage();
+        if(!copy)
+            return this.notFoundCopyMessage();
 
         // Verificar que sea el owner del ejemplar
-        if(!copy.owner._id.equals(ownerId)) return this.badRequestCopyMessage("El usuario no es el dueño del ejemplar");
+        if(!copy.owner._id.equals(ownerId))
+            return this.badRequestCopyMessage("El usuario no es el dueño del ejemplar");
 
         // Verificar que la copia tenga un currentLoan
-        if(!copy.currentLoan) return this.badRequestCopyMessage("No existe un pedido de prestamo del ejemplar");
+        if(!copy.currentLoan)
+            return this.badRequestCopyMessage("No existe un pedido de prestamo del ejemplar");
 
         // Verificar que el Prestamo se encuentré en estado solicitado o aceptado
         if (copy.currentLoan
-            && (copy.currentLoan.status !== currentLoanStatusEnum.requested && copy.currentLoan.status !== currentLoanStatusEnum.accepted)
+            && (copy.currentLoan.status !== currentLoanStatusEnum.requested
+                && copy.currentLoan.status !== currentLoanStatusEnum.accepted)
         )
             return this.badRequestCopyMessage("El estado del presatamo no es valido para ser rechazado");
 
@@ -601,13 +633,16 @@ export abstract class CopyService {
 
         // Buscar la copia
         const copy = await Copy.findById(copyId);
-        if(!copy) return this.notFoundCopyMessage();
+        if(!copy)
+            return this.notFoundCopyMessage();
 
         // Verificar que sea el owner del ejemplar
-        if(!copy.owner._id.equals(ownerId)) return this.badRequestCopyMessage("El usuario no es el dueño del ejemplar");
+        if(!copy.owner._id.equals(ownerId))
+            return this.badRequestCopyMessage("El usuario no es el dueño del ejemplar");
 
         // Verificar que la copia tenga un currentLoan
-        if(!copy.currentLoan) return this.badRequestCopyMessage("No existe un prestamo activo del ejemplar");
+        if(!copy.currentLoan)
+            return this.badRequestCopyMessage("No existe un prestamo activo del ejemplar");
 
         // Verificar que el Prestamo se encuentré en estado aceptado
         if (copy.currentLoan && (copy.currentLoan.status !== currentLoanStatusEnum.accepted))
@@ -635,16 +670,18 @@ export abstract class CopyService {
     }
 
     private static async  setCopyLoanStatusClaimed(ownerId: string, copyId: string):  Promise<IServiceResponse> {
-
         // Buscar la copia
         const copy = await Copy.findById(copyId);
-        if(!copy) return this.notFoundCopyMessage();
+        if(!copy)
+            return this.notFoundCopyMessage();
 
         // Verificar que sea el owner del ejemplar
-        if(!copy.owner._id.equals(ownerId)) return this.badRequestCopyMessage("El usuario no es el dueño del ejemplar");
+        if(!copy.owner._id.equals(ownerId))
+            return this.badRequestCopyMessage("El usuario no es el dueño del ejemplar");
 
         // Verificar que la copia tenga un currentLoan
-        if(!copy.currentLoan) return this.badRequestCopyMessage("No existe un prestamo activo del ejemplar");
+        if(!copy.currentLoan)
+            return this.badRequestCopyMessage("No existe un prestamo activo del ejemplar");
 
         // Verificar que el Prestamo se encuentré en estado aceptado
         if (copy.currentLoan && (copy.currentLoan.status !== currentLoanStatusEnum.borrowed))
@@ -671,8 +708,48 @@ export abstract class CopyService {
                 copy
             }
         };
+    }
 
 
+    private static async  setCopyLoanStatusReturned(requesterUserId: string, copyId: string):  Promise<IServiceResponse> {
+        // Buscar la copia
+        const copy = await Copy.findById(copyId);
+        if(!copy) return this.notFoundCopyMessage();
+
+        // Verificar que la copia se encuentre prestada
+        if(!copy.currentLoan)
+            return this.badRequestCopyMessage("El ejemplar no ha sido prestado");
+
+        // Verificar que se le haya prestado el ejemplar al requester
+        if (!copy.currentLoan.user._id.equals(requesterUserId))
+            return this.badRequestCopyMessage("No te han prestamo el ejemplar");
+
+        // Verificar que el Prestamo se encuentré en estado borrowed
+        if (copy.currentLoan.status !== currentLoanStatusEnum.borrowed && copy.currentLoan.status !== currentLoanStatusEnum.claimed)
+            return this.badRequestCopyMessage("El estado del presatamo no es valido para ser devuelto");
+
+        copy.currentLoan.dateTimeReturned = Date.now();
+        copy.dateTimeUpdated = Date.now();
+        copy.currentLoan.status = currentLoanStatusEnum.returned;
+
+        // Guardar copia marcada como devuelta
+        await copy.save();
+
+        //TODO: TRSCL-227 - Enviar mail al owner informando que el requester ha marcado como devuelto el
+        // ejemplar prestado y este debe confirmar la devolución.
+
+        const message = `Se ha devuelto el ejemplar ${ copy.book.title }. Se le va a enviar 
+        un email a  ${copy.owner.nombre } ${copy.owner.apellido } para informarle que debe confirmar 
+        la devolución.`
+
+        return {
+            status: 200,
+            response: {
+                ok: true,
+                mensaje: message,
+                copy
+            }
+        };
 
     }
 

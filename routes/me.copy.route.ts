@@ -43,15 +43,13 @@ router.get('/following', [], async (req:Request, res: Response) => {
     const userId = req.user._id
     const search = req.query.search || null;
     const showDeleted  = req.query.showDeleted === 'true';
+    const showOnlyBorrowedToMe  = req.query.showOnlyBorrowedToMe === 'true';
     const pagination: IPagination = {
         pageNumber: Number(req.query.page) || 1,
         pageSize : Number(req.query.pageSize) || DEFAULT_PAGE_SIZE
     };
 
-    // const followedByMe = await FollowService.getArrayAllFollowedByMeConfirmed(userId);
-
-
-    const returnedResponse = await CopyService.getAllCopiesByUserIsFollowing(userId, search, pagination, showDeleted);
+    const returnedResponse = await CopyService.getAllCopiesByUserIsFollowing(userId, search, pagination, showDeleted, showOnlyBorrowedToMe);
     return res.status(returnedResponse.status).json(returnedResponse.response);
 
 });
