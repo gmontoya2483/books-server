@@ -16,7 +16,7 @@ import {IPagination} from "../interfaces/pagination.interfaces";
 import {Pagination} from "../classes/pagination.class";
 import {FollowService} from "./follow.service";
 import {MeService} from "./me.service";
-import {currentLoanStatusEnum} from "../models/loan.model";
+import {currentLoanStatusEnum, LoanHistory} from "../models/loan.model";
 
 
 export abstract class CopyService {
@@ -437,6 +437,8 @@ export abstract class CopyService {
                 return this.setCopyLoanStatusClaimed(userId, copyId);
             case currentLoanStatusEnum.returned:
                 return this.setCopyLoanStatusReturned(userId, copyId);
+            case currentLoanStatusEnum.returnedConfirmation:
+                return this.setCopyLoanStatusReturnedConfirmation(userId, copyId);
             default:
                 return this.badRequestCopyMessage("Estado del préstamo no válido");
         }
@@ -714,10 +716,10 @@ export abstract class CopyService {
     private static async  setCopyLoanStatusReturned(requesterUserId: string, copyId: string):  Promise<IServiceResponse> {
         // Buscar la copia
         const copy = await Copy.findById(copyId);
-        if(!copy) return this.notFoundCopyMessage();
+        if (!copy) return this.notFoundCopyMessage();
 
         // Verificar que la copia se encuentre prestada
-        if(!copy.currentLoan)
+        if (!copy.currentLoan)
             return this.badRequestCopyMessage("El ejemplar no ha sido prestado");
 
         // Verificar que se le haya prestado el ejemplar al requester
@@ -738,8 +740,8 @@ export abstract class CopyService {
         //TODO: TRSCL-227 - Enviar mail al owner informando que el requester ha marcado como devuelto el
         // ejemplar prestado y este debe confirmar la devolución.
 
-        const message = `Se ha devuelto el ejemplar ${ copy.book.title }. Se le va a enviar 
-        un email a  ${copy.owner.nombre } ${copy.owner.apellido } para informarle que debe confirmar 
+        const message = `Se ha devuelto el ejemplar ${copy.book.title}. Se le va a enviar 
+        un email a  ${copy.owner.nombre} ${copy.owner.apellido} para informarle que debe confirmar 
         la devolución.`
 
         return {
@@ -750,8 +752,98 @@ export abstract class CopyService {
                 copy
             }
         };
+    }
+
+
+
+
+    private static async  setCopyLoanStatusReturnedConfirmation(ownerUserId: string, copyId: string):  Promise<IServiceResponse> {
+
+        // Buscar la copia
+        const copy = await Copy.findById(copyId);
+        if (!copy) return this.notFoundCopyMessage();
+
+        // Verificar que la copia se encuentre prestada
+        if (!copy.currentLoan)
+            return this.badRequestCopyMessage("El ejemplar no ha sido prestado");
+
+        // Verificar que sea el dueño del ejemplar al requester
+        if (!copy.owner._id.equals(ownerUserId))
+            return this.badRequestCopyMessage("No eres el dueño del ejemplar");
+
+        // Verificar que el Prestamo se encuentré en estado regresado
+        if (copy.currentLoan.status !== currentLoanStatusEnum.returned)
+            return this.badRequestCopyMessage("El estado del presatamo no es valido para confirmar la devolución");
+
+
+        const loan = {
+            _id: copy.currentLoan._id,
+            user: copy.currentLoan.user,
+            status:  currentLoanStatusEnum.returnedConfirmation,
+            dateTimeRequested: copy.currentLoan.dateTimeRequested,
+            dateTimeAccepted: copy.currentLoan.dateTimeAccepted,
+            dateTimeRejected: copy.currentLoan.dateTimeRejected,
+            dateTimeBorrowed: copy.currentLoan.dateTimeBorrowed,
+            dateTimeClaimed: copy.currentLoan.dateTimeClaimed,
+            dateTimeReturned: copy.currentLoan.dateTimeReturned,
+            dateTimeReturnedConfirmation: Date.now(),
+            copyId: copy._id,
+            ownerId: copy.owner._id
+        }
+
+        // Setear el nuevo loanHistory
+        const loanHistory = new LoanHistory(loan);
+
+        // Borrar el current loan de la copia
+        copy.currentLoan = null;
+        copy.dateTimeUpdated = Date.now();
+
+        const session = await Copy.startSession();
+        session.startTransaction();
+
+        try {
+
+            const opts = {session};
+            await copy.save(opts);
+            await loanHistory.save(opts);
+
+            // Confirmo la transaccion
+            await session.commitTransaction();
+            session.endSession();
+
+            //TODO: TRSCL-236 - Enviar mail al requester informando que se ha confirmado la devolucion del  ejemplar
+            // prestado.
+
+
+            const message = `Se ha confirmado la devolución del ejemplar ${copy.book.title}. Se le va a enviar 
+            un email a  ${loanHistory.user.nombre} ${loanHistory.user.apellido} para informar que 
+            se confirmó la devolución.`
+
+            return {
+                status: 200,
+                response: {
+                    ok: true,
+                    mensaje: message,
+                    copy
+                }
+            };
+
+
+
+        } catch (e) {
+            console.log('Copy: salio por aca')
+            await session.abortTransaction();
+            session.endSession();
+            throw e;
+
+        }
+
 
     }
+
+
+
+
 
 
 }

@@ -1,9 +1,9 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema, model, Document } from 'mongoose';
 import {referencedBookSchema} from "./book.model";
 import {referencedUserSchema} from "./user.model";
 import {currentLoanSchema} from "./loan.model";
 
-const copySchema = new Schema({
+export const copySchema = new Schema({
     book: {
         type: referencedBookSchema,
         required: true
@@ -36,4 +36,4 @@ const copySchema = new Schema({
 });
 
 //Copy Model Class
-export const Copy = mongoose.model('Copy', copySchema);
+export const Copy = model('Copy', copySchema);
