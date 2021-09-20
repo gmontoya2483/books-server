@@ -379,7 +379,8 @@ export abstract class CopyService {
 
         criteria = {
             ... criteria,
-            _id: copyId
+            _id: copyId,
+            currentLoan: null
         }
 
         // Si existe el owner ID
@@ -398,7 +399,7 @@ export abstract class CopyService {
             }
         }, {new: true});
 
-        if(!copy) return this.notFoundCopyMessage();
+        if(!copy) return this.notFoundCopyMessage("Ejemplar no encontrado o en proceso de prestámo");
 
         const message = (isDeleted) ? `El ejemplar ha sido marcado como eliminado`
             : `El ejemplar ha sido desmarcado como eliminado`
