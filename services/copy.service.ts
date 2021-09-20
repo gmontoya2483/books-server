@@ -448,7 +448,7 @@ export abstract class CopyService {
 
     private static async  setCopyLoanStatusRequested(RequesterUserId: string, copyId: string):  Promise<IServiceResponse> {
         // Buscar la copia
-        const copy = await Copy.findById(copyId);
+        const copy = await Copy.findOne({_id: copyId, 'isDeleted.value': false});
         if(!copy) return this.notFoundCopyMessage();
 
         // Verificar que la copia no tenga un currentLoan
@@ -502,7 +502,7 @@ export abstract class CopyService {
 
     private static async  setCopyLoanStatusCancelled(requesterUserId: string, copyId: string):  Promise<IServiceResponse> {
         // Buscar la copia
-        const copy = await Copy.findById(copyId);
+        const copy = await Copy.findOne({_id: copyId, 'isDeleted.value': false});
         if(!copy) return this.notFoundCopyMessage();
 
         // Verificar que la copia tenga un currentLoan
@@ -539,7 +539,7 @@ export abstract class CopyService {
     private static async  setCopyLoanStatusAccepted(ownerId: string, copyId: string):  Promise<IServiceResponse> {
 
         // Buscar la copia
-        const copy = await Copy.findById(copyId);
+        const copy = await Copy.findOne({_id: copyId, 'isDeleted.value': false});
         if(!copy)
             return this.notFoundCopyMessage();
 
@@ -583,7 +583,7 @@ export abstract class CopyService {
     private static async  setCopyLoanStatusRejected(ownerId: string, copyId: string):  Promise<IServiceResponse> {
 
         // Buscar la copia
-        const copy = await Copy.findById(copyId);
+        const copy = await Copy.findOne({_id: copyId, 'isDeleted.value': false});
         if(!copy)
             return this.notFoundCopyMessage();
 
@@ -635,7 +635,7 @@ export abstract class CopyService {
     private static async  setCopyLoanStatusBorrowed(ownerId: string, copyId: string):  Promise<IServiceResponse> {
 
         // Buscar la copia
-        const copy = await Copy.findById(copyId);
+        const copy = await Copy.findOne({_id: copyId, 'isDeleted.value': false});
         if(!copy)
             return this.notFoundCopyMessage();
 
@@ -674,7 +674,7 @@ export abstract class CopyService {
 
     private static async  setCopyLoanStatusClaimed(ownerId: string, copyId: string):  Promise<IServiceResponse> {
         // Buscar la copia
-        const copy = await Copy.findById(copyId);
+        const copy = await Copy.findOne({_id: copyId, 'isDeleted.value': false});
         if(!copy)
             return this.notFoundCopyMessage();
 
@@ -716,7 +716,7 @@ export abstract class CopyService {
 
     private static async  setCopyLoanStatusReturned(requesterUserId: string, copyId: string):  Promise<IServiceResponse> {
         // Buscar la copia
-        const copy = await Copy.findById(copyId);
+        const copy = await Copy.findOne({_id: copyId, 'isDeleted.value': false});
         if (!copy) return this.notFoundCopyMessage();
 
         // Verificar que la copia se encuentre prestada
@@ -761,7 +761,7 @@ export abstract class CopyService {
     private static async  setCopyLoanStatusReturnedConfirmation(ownerUserId: string, copyId: string):  Promise<IServiceResponse> {
 
         // Buscar la copia
-        const copy = await Copy.findById(copyId);
+        const copy = await Copy.findOne({_id: copyId, 'isDeleted.value': false});
         if (!copy) return this.notFoundCopyMessage();
 
         // Verificar que la copia se encuentre prestada
