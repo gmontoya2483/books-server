@@ -44,6 +44,21 @@ export abstract class CopyService {
         }
     }
 
+    public static async getSingleCopy(copyId: string) : Promise<IServiceResponse> {
+
+        const copy = await  Copy.findById(copyId);
+        if(!copy) return this.notFoundCopyMessage();
+
+        return {
+            status: 200,
+            response: {
+                ok: true,
+                copy
+            }
+        }
+
+    }
+
 
     public static async getAllCopiesByCommunity(search: any = null, {pageNumber = 1, pageSize = DEFAULT_PAGE_SIZE}: IPagination
         , showDeleted: boolean = false, { communityId }: ICriteria, meId: string): Promise<IServiceResponse> {
