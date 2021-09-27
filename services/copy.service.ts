@@ -23,7 +23,6 @@ export abstract class CopyService {
 
 
     public static async newCopy (meId: string, {bookId}: INewCopy): Promise<IServiceResponse>{
-
         const owner: any = await UserService.findUser(meId);
         if (!owner) return this.badRequestCopyMessage("Usario no encontrado");
 
@@ -45,7 +44,6 @@ export abstract class CopyService {
     }
 
     public static async getSingleCopy(copyId: string) : Promise<IServiceResponse> {
-
         const copy = await  Copy.findById(copyId);
         if(!copy) return this.notFoundCopyMessage();
 
