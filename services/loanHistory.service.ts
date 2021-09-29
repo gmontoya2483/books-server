@@ -15,5 +15,20 @@ export abstract class LoanHistoryService {
             }
         }
     }
+
+    public static async getAllLoanHistoryByRequester(requesterId: string): Promise<IServiceResponse> {
+        const loanHistory = await LoanHistory.find({'user._id': requesterId}).sort({dateTimeCreated: -1}).populate('copyId');
+
+        return {
+            status: 200,
+            response: {
+                ok: true,
+                loanHistory
+            }
+        }
+
+    }
+
+
 }
 
