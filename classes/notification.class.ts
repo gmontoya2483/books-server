@@ -64,7 +64,7 @@ export abstract class Notification {
     public static getRequestCopyLoan ( requesterName: string, requesterEmail: string, ownerName: string, ownerEmail: string, title: string ): ISendGridMessage{
 
         const to = ownerEmail;
-        const subject = `Solicitud de Préstamo: ${ title }`;
+        const subject = `Solicitud de préstamo: ${ title }`;
 
         const html= `<!DOCTYPE html>
             <html lang="es">
@@ -75,7 +75,7 @@ export abstract class Notification {
                 <h2>Solicitud de Préstamo: ${ title }</h2>
                 <br>
                 <p>Hola ${ownerName},</p>
-                 <p>El usuario ${ requesterName }, cuyo correo electrónico es ${ requesterEmail }, le solicita prestado el ejemplar del libro <strong>${ title }</strong>.</p>
+                 <p>El usuario ${ requesterName }, cuyo correo electrónico es ${ requesterEmail }, te solicito prestado el ejemplar del libro <strong>${ title }</strong>.</p>
                  <p>Por favor ingrese a su biblioteca para aceptar o rechazar el pedido.</p>
                  <br>
                  <p>Muchas gracias!!</p>
@@ -83,6 +83,57 @@ export abstract class Notification {
             </html>`;
 
         return this.generateNotification(to, subject, html);
+    }
+
+    public static getRejectCopyLoan ( requesterName: string, requesterEmail: string, ownerName: string, ownerEmail: string, title: string ): ISendGridMessage{
+
+        const to = requesterEmail;
+        const subject = `Solicitud de préstamo rechazada: ${ title }`;
+
+        const html= `<!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="utf-8"><title>Solicitud de Préstamo: ${ title }</title>
+            </head>
+            <body>
+                <h2>Solicitud de Préstamo: ${ title }</h2>
+                <br>
+                <p>Hola ${requesterName},</p>
+                 <p>El usuario ${ ownerName }, por el momento, no aceptó prestarte el ejemplar del libro <strong>${ title }</strong>.</p>
+                 <p>Si aún estás interesado en leer este libro, busca otra copia entre tus amigos o vuelve a pedirselo prestado a ${ ownerName } en otro momento.</p>
+                 <br>
+                 <p>Muchas gracias!!</p>
+            </body>
+            </html>`;
+
+        return this.generateNotification(to, subject, html);
+
+    }
+
+
+    public static getReturnedConfirmationCopyLoan ( requesterName: string, requesterEmail: string, ownerName: string, ownerEmail: string, title: string ): ISendGridMessage{
+
+        const to = requesterEmail;
+        const subject = `Confirmación devolución: ${ title }`;
+
+        const html= `<!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="utf-8"><title>Confirmación devolución: ${ title }</title>
+            </head>
+            <body>
+                <h2>Confirmación devolución: ${ title }</h2>
+                <br>
+                <p>Hola ${requesterName},</p>
+                 <p>El usuario ${ ownerName } ha confirmado que le has devuelto el ejemplar del libro <strong>${ title }</strong>.</p>
+                 <p>Puedes ver la confirmación de la devolución en la sección <strong>libros que me prestaron</strong>.</p>
+                 <br>
+                 <p>Muchas gracias!!</p>
+            </body>
+            </html>`;
+
+        return this.generateNotification(to, subject, html);
+
     }
 
 

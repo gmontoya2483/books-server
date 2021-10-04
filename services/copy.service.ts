@@ -644,7 +644,19 @@ export abstract class CopyService {
         // Guardar copia marcada como prestamos rechazado
         await copy.save();
 
-        //TODO: TRSCL-220 - Enviar mail al requester informando que le owner no acerpto prestarle el ejemplar.
+        // Crear notificación
+        const emailMessage: any = Notification.getRejectCopyLoan(
+            requesterInfo.nombre,
+            requesterInfo.email,
+            `${copy.owner.nombre} ${copy.owner.apellido}`,
+            copy.owner.email,
+            copy.book.title
+        );
+
+        // Enviar Notificacion
+        logger.debug(`Enviando Nofificacion a SendGrid: ${JSON.stringify(emailMessage)}`);
+        const sendGrid = new SendGrid();
+        await sendGrid.sendSingleEmail(emailMessage);
 
         const message = `El pedido de prestamo del ejemplar ${ copy.book.title } ha sido rechazado. Se le va a enviar 
         un email a ${requesterInfo.nombre} ${requesterInfo.apellido } para informarle su decisión.`
@@ -841,8 +853,22 @@ export abstract class CopyService {
             await session.commitTransaction();
             session.endSession();
 
-            //TODO: TRSCL-236 - Enviar mail al requester informando que se ha confirmado la devolucion del  ejemplar
-            // prestado.
+
+            // Crear notificación
+            const emailMessage: any = Notification.getReturnedConfirmationCopyLoan(
+                loan.user.nombre,
+                loan.user.email,
+                `${copy.owner.nombre} ${copy.owner.apellido}`,
+                copy.owner.email,
+                copy.book.title
+            );
+
+            // Enviar Notificacion
+            logger.debug(`Enviando Nofificacion a SendGrid: ${JSON.stringify(emailMessage)}`);
+            const sendGrid = new SendGrid();
+            await sendGrid.sendSingleEmail(emailMessage);
+
+
 
 
             const message = `Se ha confirmado la devolución del ejemplar ${copy.book.title}. Se le va a enviar 
