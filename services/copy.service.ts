@@ -17,6 +17,9 @@ import {Pagination} from "../classes/pagination.class";
 import {FollowService} from "./follow.service";
 import {MeService} from "./me.service";
 import {currentLoanStatusEnum, LoanHistory} from "../models/loan.model";
+import {Notification} from "../classes/notification.class";
+import logger from "../startup/logger.startup";
+import {SendGrid} from "../classes/sendgrid.class";
 
 
 export abstract class CopyService {
@@ -498,8 +501,21 @@ export abstract class CopyService {
         // Guardar copia marcada como pedida en prestamo
         await copy.save();
 
-        //TODO: TRSCL-218 - Enviar mail al owner con los datos del requester, indicando que se le ha solicitado prestado el ejemplar
+        // Crear notificación
+        const emailMessage: any = Notification.getRequestCopyLoan(
+            `${requester.nombre} ${requester.apellido}`,
+            requester.email,
+            copy.owner.nombre,
+            copy.owner.email,
+            copy.book.title
+        );
 
+        // Enviar Notificacion
+        logger.debug(`Enviando Nofificacion a SendGrid: ${JSON.stringify(emailMessage)}`);
+        const sendGrid = new SendGrid();
+        await sendGrid.sendSingleEmail(emailMessage);
+
+        // Respuesta
         const message = `El ejemplar ${ copy.book.title } ha sido pedido prestado a ${ copy.owner.nombre } ${ copy.owner.apellido }`
 
         return {

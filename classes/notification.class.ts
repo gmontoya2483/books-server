@@ -61,6 +61,33 @@ export abstract class Notification {
         return this.generateNotification(to, subject, html);
     }
 
+    public static getRequestCopyLoan ( requesterName: string, requesterEmail: string, ownerName: string, ownerEmail: string, title: string ): ISendGridMessage{
+
+        const to = ownerEmail;
+        const subject = `Solicitud de Préstamo: ${ title }`;
+
+        const html= `<!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="utf-8"><title>Solicitud de Préstamo: ${ title }</title>
+            </head>
+            <body>
+                <h2>Solicitud de Préstamo: ${ title }</h2>
+                <br>
+                <p>Hola ${ownerName},</p>
+                 <p>El usuario ${ requesterName }, cuyo correo electrónico es ${ requesterEmail }, le solicita prestado el ejemplar del libro <strong>${ title }</strong>.</p>
+                 <p>Por favor ingrese a su biblioteca para aceptar o rechazar el pedido.</p>
+                 <br>
+                 <p>Muchas gracias!!</p>
+            </body>
+            </html>`;
+
+        return this.generateNotification(to, subject, html);
+    }
+
+
+
+
 
 
     private static generateNotification (  to: string, subject: string, html: string): ISendGridMessage{
