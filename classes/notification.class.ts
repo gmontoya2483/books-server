@@ -160,6 +160,32 @@ export abstract class Notification {
 
     }
 
+    public static getClaimCopyLoan ( requesterName: string, requesterEmail: string, ownerName: string, ownerEmail: string, title: string ): ISendGridMessage{
+
+        const to = requesterEmail;
+        const subject = `Solicitud de devolución: ${ title }`;
+
+        const html= `<!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="utf-8"><title>Solicitud de devolución: ${ title }</title>
+            </head>
+            <body>
+                <h2>Solicitud de devolución: ${ title }</h2>
+                <br>
+                <p>Hola ${requesterName},</p>
+                 <p>El usuario ${ ownerName }, con el email ${ ownerEmail }, solicitó que le devuelvas el libro <strong>${ title }</strong>.</p>
+                 <p>Coordiná con el dueño del ejemplar la devulución del mismo.</p>
+                 <p>Si aún no finalizaste de leer este libro, busca otra copia entre tus amigos o vuelve a pedirselo prestado a ${ ownerName } en otro momento.</p>
+                 <br>
+                 <p>Muchas gracias!!</p>
+            </body>
+            </html>`;
+
+        return this.generateNotification(to, subject, html);
+
+    }
+
 
     public static getReturnedConfirmationCopyLoan ( requesterName: string, requesterEmail: string, ownerName: string, ownerEmail: string, title: string ): ISendGridMessage{
 

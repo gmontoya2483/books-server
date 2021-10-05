@@ -766,7 +766,20 @@ export abstract class CopyService {
         // Guardar copia marcada como prestada
         await copy.save();
 
-        //TODO: TRSCL-224 - Enviar mail al requester informando que el owner desea que le devuelva el ejemplar prestado.
+        // Crear notificación
+        const emailMessage: any = Notification.getClaimCopyLoan(
+            copy.currentLoan.user.nombre,
+            copy.currentLoan.user.email,
+            `${copy.owner.nombre} ${copy.owner.apellido}`,
+            copy.owner.email,
+            copy.book.title
+        );
+
+        // Enviar Notificacion
+        logger.debug(`Enviando Nofificacion a SendGrid: ${JSON.stringify(emailMessage)}`);
+        const sendGrid = new SendGrid();
+        await sendGrid.sendSingleEmail(emailMessage);
+
 
         const message = `Se solicito la devolución del ejemplar ${ copy.book.title }. Se le va a enviar 
         un email a    ${copy.currentLoan.user.nombre } ${copy.currentLoan.user.apellido } para informarle que debe devolver el 
