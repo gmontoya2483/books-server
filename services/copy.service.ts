@@ -820,9 +820,21 @@ export abstract class CopyService {
         // Guardar copia marcada como devuelta
         await copy.save();
 
-        //TODO: TRSCL-227 - Enviar mail al owner informando que el requester ha marcado como devuelto el
-        // ejemplar prestado y este debe confirmar la devolución.
+        // Crear notificación
+        const emailMessage: any = Notification.getReturnCopyLoan(
+            `${copy.currentLoan.user.nombre} ${copy.currentLoan.user.apellido}`,
+            copy.currentLoan.user.email,
+            copy.owner.nombre,
+            copy.owner.email,
+            copy.book.title
+        );
 
+        // Enviar Notificacion
+        logger.debug(`Enviando Nofificacion a SendGrid: ${JSON.stringify(emailMessage)}`);
+        const sendGrid = new SendGrid();
+        await sendGrid.sendSingleEmail(emailMessage);
+
+        // Respuesta
         const message = `Se ha devuelto el ejemplar ${copy.book.title}. Se le va a enviar 
         un email a  ${copy.owner.nombre} ${copy.owner.apellido} para informarle que debe confirmar 
         la devolución.`
