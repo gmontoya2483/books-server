@@ -591,7 +591,20 @@ export abstract class CopyService {
         // Guardar copia marcada como prestamos aceptado
         await copy.save();
 
-        //TODO: TRSCL-219 - Enviar mail al requester con datos del owner para que pueda contactarlo.
+        // Crear notificación
+        const emailMessage: any = Notification.getAcceptCopyLoan(
+            copy.currentLoan.user.nombre,
+            copy.currentLoan.user.email,
+            `${copy.owner.nombre} ${copy.owner.apellido}`,
+            copy.owner.email,
+            copy.book.title
+        );
+
+        // Enviar Notificacion
+        logger.debug(`Enviando Nofificacion a SendGrid: ${JSON.stringify(emailMessage)}`);
+        const sendGrid = new SendGrid();
+        await sendGrid.sendSingleEmail(emailMessage);
+
 
         const message = `El pedido de prestamo del ejemplar ${ copy.book.title } ha sido aceptado. Se le va a enviar 
         un email con sus datos a ${copy.currentLoan.user.nombre} ${copy.currentLoan.user.apellido } para que pueda
@@ -698,6 +711,8 @@ export abstract class CopyService {
 
         // Guardar copia marcada como prestada
         await copy.save();
+
+        //TODO: TRSCL-244 - Enviar mail al requester informando que el owner ha marcado el ejemplar como prestado.
 
         const message = `El ejemplar ${ copy.book.title } ha sido prestado a ${ copy.currentLoan.user.nombre }
          ${ copy.currentLoan.user.apellido } `
