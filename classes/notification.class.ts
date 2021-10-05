@@ -111,8 +111,6 @@ export abstract class Notification {
     }
 
 
-
-
     public static getRejectCopyLoan ( requesterName: string, requesterEmail: string, ownerName: string, ownerEmail: string, title: string ): ISendGridMessage{
 
         const to = requesterEmail;
@@ -129,6 +127,30 @@ export abstract class Notification {
                 <p>Hola ${requesterName},</p>
                  <p>El usuario ${ ownerName }, por el momento, no aceptó prestarte el ejemplar del libro <strong>${ title }</strong>.</p>
                  <p>Si aún estás interesado en leer este libro, busca otra copia entre tus amigos o vuelve a pedirselo prestado a ${ ownerName } en otro momento.</p>
+                 <br>
+                 <p>Muchas gracias!!</p>
+            </body>
+            </html>`;
+
+        return this.generateNotification(to, subject, html);
+
+    }
+
+    public static getBorrowCopyLoan ( requesterName: string, requesterEmail: string, ownerName: string, ownerEmail: string, title: string ): ISendGridMessage{
+
+        const to = requesterEmail;
+        const subject = `Libro prestado: ${ title }`;
+
+        const html= `<!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="utf-8"><title>Libro prestado: ${ title }</title>
+            </head>
+            <body>
+                <h2>Libro prestado: ${ title }</h2>
+                <br>
+                <p>Hola ${requesterName},</p>
+                 <p>El usuario ${ ownerName } informó que te ha dado en prestamo el libro <strong>${ title }</strong>.</p>
                  <br>
                  <p>Muchas gracias!!</p>
             </body>

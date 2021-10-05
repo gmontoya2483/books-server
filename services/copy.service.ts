@@ -712,8 +712,21 @@ export abstract class CopyService {
         // Guardar copia marcada como prestada
         await copy.save();
 
-        //TODO: TRSCL-244 - Enviar mail al requester informando que el owner ha marcado el ejemplar como prestado.
+        // Crear notificación
+        const emailMessage: any = Notification.getBorrowCopyLoan(
+            copy.currentLoan.user.nombre,
+            copy.currentLoan.user.email,
+            `${copy.owner.nombre} ${copy.owner.apellido}`,
+            copy.owner.email,
+            copy.book.title
+        );
 
+        // Enviar Notificacion
+        logger.debug(`Enviando Nofificacion a SendGrid: ${JSON.stringify(emailMessage)}`);
+        const sendGrid = new SendGrid();
+        await sendGrid.sendSingleEmail(emailMessage);
+
+        // Respuesta
         const message = `El ejemplar ${ copy.book.title } ha sido prestado a ${ copy.currentLoan.user.nombre }
          ${ copy.currentLoan.user.apellido } `
 
