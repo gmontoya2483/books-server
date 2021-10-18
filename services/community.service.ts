@@ -6,6 +6,8 @@ import {DEFAULT_PAGE_SIZE} from "../globals/environment.global";
 import {IPagination} from "../interfaces/pagination.interfaces";
 import {Pagination} from "../classes/pagination.class";
 import {CountryService} from "./country.service";
+import {UserService} from "./user.service";
+import {CopyService} from "./copy.service";
 
 
 
@@ -291,4 +293,37 @@ export abstract class CommunityService {
     public static async findCommunity(communityId: string) {
         return Community.findById(communityId).select({__v: 0});
     }
+
+
+    public static async getCommunityStatisticInfo(communityId: string, communityName: string) {
+        const totalCopies = await CopyService.getTotalCopiesByCommunity(communityId);
+        const copiesByAuthor = await CopyService.getQtyCopiesByAuthorAndCommunity(communityId);
+        const copiesByGenre = await CopyService.getQtyCopiesByGenreAndCommunity(communityId);
+        const totalMembers = await UserService.getTotalUsersByCommunity(communityId);
+
+        return {
+            communityName,
+            totalMembers,
+            copies: {
+                totalCopies,
+                authors: {
+                    total: copiesByAuthor.length,
+                    copiesByAuthor
+                },
+                genres: {
+                    total: copiesByGenre.length,
+                    copiesByGenre
+                }
+            }
+
+        };
+    }
+
+
+
+
+
+
+
+
 }

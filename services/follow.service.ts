@@ -399,4 +399,32 @@ export abstract class FollowService{
         return !!(await Follow.findOne({follower, following}));
     }
 
+
+    public static async getFollowStatisticsInfo(userId: string) {
+        const totalFollowers = await this.getQtyFollowingUserId(userId, true);
+        const totalFollowersRequest = await this.getQtyFollowingUserId(userId, false);
+        const totalFollowing = await this.getQtyFollowedByUserId(userId, true);
+        const totalFollowingRequest = await this.getQtyFollowedByUserId(userId, false);
+
+        return {
+            followers: {
+                totalFollowers,
+                totalFollowersRequest
+            },
+            following: {
+                totalFollowing,
+                totalFollowingRequest
+            }
+        };
+    }
+
+
+    private static async getQtyFollowingUserId(userId: string, isConfirmed: boolean) {
+        return  Follow.countDocuments({following: userId, 'isConfirmed.value': isConfirmed});
+    }
+
+    private static async getQtyFollowedByUserId(userId: string, isConfirmed: boolean) {
+        return  Follow.countDocuments({follower: userId, 'isConfirmed.value': isConfirmed});
+    }
+
 }

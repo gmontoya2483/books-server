@@ -20,6 +20,7 @@ import {currentLoanStatusEnum, LoanHistory} from "../models/loan.model";
 import {Notification} from "../classes/notification.class";
 import logger from "../startup/logger.startup";
 import {SendGrid} from "../classes/sendgrid.class";
+import {Book} from "../models/book.model";
 
 
 export abstract class CopyService {
@@ -947,12 +948,132 @@ export abstract class CopyService {
 
         }
 
+    }
 
+    public static async getTotalCopiesByCommunity(communityId: string){
+        return Copy.countDocuments({'owner.comunidad._id': communityId});
+    }
+
+
+    public static async getTotalCopiesByUserId(userId: string, isDeleted: boolean){
+        return Copy.countDocuments({'owner._id': userId, 'isDeleted.value': isDeleted});
+    }
+
+
+    public static async getQtyCopiesByGenreAndCommunity(communityId: string) {
+        const aggregatorOpts = [
+            {
+                $match: {'owner.comunidad._id': communityId}
+            },
+            {
+                $group: { _id: "$book.genre.name" , totalCopies: {$sum: 1}}
+            },
+            {
+                $sort: {totalCopies: -1}
+            }
+        ]
+        return await Copy.aggregate(aggregatorOpts).exec();
+    }
+
+    public static async getQtyCopiesByAuthorAndCommunity(communityId: string) {
+        const aggregatorOpts = [
+            {
+                $match: {'owner.comunidad._id': communityId}
+            },
+            {
+                $group: { _id: { $concat: ["$book.author.name", " ", "$book.author.lastName"] } , totalCopies: {$sum: 1}}
+            },
+            {
+                $sort: {totalCopies: -1}
+            }
+        ]
+        return await Copy.aggregate(aggregatorOpts).exec();
+    }
+
+
+    public static async getQtyCopiesByGenreAndUserEmail(email: string) {
+        const aggregatorOpts = [
+            {
+                $match: {'owner.email': email}
+            },
+            {
+                $group: { _id: "$book.genre.name" , totalCopies: {$sum: 1}}
+            },
+            {
+                $sort: {totalCopies: -1}
+            }
+        ]
+        return await Copy.aggregate(aggregatorOpts).exec();
+    }
+
+
+    public static async getQtyCopiesByLoanStatusAndUserEmail(email: string) {
+        const aggregatorOpts = [
+            {
+                $match: {'owner.email': email}
+            },
+            {
+                $group: { _id: "$currentLoan.status" , totalCopies: {$sum: 1}}
+            },
+            {
+                $sort: {totalCopies: -1}
+            }
+        ]
+        return await Copy.aggregate(aggregatorOpts).exec();
+    }
+
+
+    public static async getQtyCopiesByAuthorAndUserEmail(email: string) {
+        const aggregatorOpts = [
+            {
+                $match: {'owner.email': email}
+            },
+            {
+                $group: { _id: { $concat: ["$book.author.name", " ", "$book.author.lastName"] } , totalCopies: {$sum: 1}}
+            },
+            {
+                $sort: {totalCopies: -1}
+            }
+        ]
+        return await Copy.aggregate(aggregatorOpts).exec();
     }
 
 
 
 
 
+    public static async getCopiesByUserIdStatisticsInfo(userId: string, email: string){
+        const deletedCopies = await this.getTotalCopiesByUserId(userId, true);
+        const activeCopies =  await this.getTotalCopiesByUserId(userId, false);
+        const total = activeCopies + deletedCopies;
+        const copiesByGenre = await this.getQtyCopiesByGenreAndUserEmail(email);
+        const copiesByAuthor = await this.getQtyCopiesByAuthorAndUserEmail(email)
+        const copiesByCurrentLoanStatus = await this.getQtyCopiesByLoanStatusAndUserEmail(email);
+
+
+        return {
+            totalCopies: {
+                total,
+                deletedCopies,
+                activeCopies,
+            },
+            copies: {
+                genres: {
+                    total: copiesByGenre.length,
+                    copiesByGenre
+                },
+                authors: {
+                    total: copiesByAuthor.length,
+                    copiesByAuthor
+                },
+                currentLoans: {
+                    total: copiesByCurrentLoanStatus.length,
+                    copiesByCurrentLoanStatus
+                }
+            }
+
+        }
+
+    }
 
 }

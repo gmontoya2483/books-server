@@ -241,6 +241,13 @@ export abstract class UserService {
         };
     }
 
+    public static async retrieveUserInfo(userId: string) {
+        const user: any = await User.findById(userId).select({'password': 0, '__v': 0});
+        if (!user) return null;
+
+        return user;
+    }
+
 
     public static async setAdmin (UserId: string, {isAdmin}: IAdminUser): Promise<IServiceResponse>{
 
@@ -318,6 +325,10 @@ export abstract class UserService {
             logger.error(`No se pudo enviar el email:`, e);
             return false;
         }
+    }
+
+    public static async getTotalUsersByCommunity( communityId: string) {
+        return User.countDocuments({'comunidad._id': communityId});
     }
 
 }

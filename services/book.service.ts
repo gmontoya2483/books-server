@@ -332,4 +332,55 @@ export abstract class BookService {
 
 
 
+
+
+    public static async getBookStatisticInfo() {
+
+        const totalBooks = await Book.countDocuments({});
+        const booksByAuthor = await this.getQtyBooksByAuthor();
+        const booksByGenre = await this.getQtyBooksByGenre();
+
+        return {
+
+                totalBooks,
+                authors: {
+                    total: booksByAuthor.length,
+                    booksByAuthor
+                },
+                genres: {
+                    total: booksByGenre.length,
+                    booksByGenre
+                }
+            }
+
+    }
+
+
+    private static async getQtyBooksByAuthor() {
+        const aggregatorOpts = [
+            {
+                $group: { _id: { $concat: ["$author.name", " ", "$author.lastName"] }, totalBooks: {$sum: 1}}
+            },
+            {
+                $sort: {totalBooks: -1}
+            }
+        ]
+        return await Book.aggregate(aggregatorOpts).exec();
+    }
+
+
+    private static async getQtyBooksByGenre() {
+        const aggregatorOpts = [
+            {
+                $group: { _id: "$genre.name" , totalBooks: {$sum: 1}}
+            },
+            {
+                $sort: {totalBooks: -1}
+            }
+        ]
+        return await Book.aggregate(aggregatorOpts).exec();
+    }
+
+
+
 }
