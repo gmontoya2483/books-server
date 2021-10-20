@@ -40,7 +40,7 @@ export abstract class StatisticsService {
         }
 
         if (showFollowStatistics) {
-            const followStatistics = await FollowService.getFollowStatisticsInfo(userId);
+            const followStatistics = await FollowService.getFollowStatisticsInfo(userId, user.email);
             response = {...response, followStatistics};
         }
 

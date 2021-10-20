@@ -21,6 +21,7 @@ import {Notification} from "../classes/notification.class";
 import logger from "../startup/logger.startup";
 import {SendGrid} from "../classes/sendgrid.class";
 import {Book} from "../models/book.model";
+import {LoanHistoryService} from "./loanHistory.service";
 
 
 export abstract class CopyService {
@@ -923,10 +924,13 @@ export abstract class CopyService {
             await sendGrid.sendSingleEmail(emailMessage);
 
 
-
+            // @ts-ignore
+            const nombre= loanHistory.user.nombre;
+            // @ts-ignore
+            const apellido = loanHistory.user.apellido;
 
             const message = `Se ha confirmado la devolución del ejemplar ${copy.book.title}. Se le va a enviar 
-            un email a  ${loanHistory.user.nombre} ${loanHistory.user.apellido} para informar que 
+            un email a  ${nombre} ${apellido} para informar que 
             se confirmó la devolución.`
 
             return {
@@ -1039,6 +1043,28 @@ export abstract class CopyService {
     }
 
 
+    public static async getQtyCopiesByLoanStatusAndRequesterId(requesterEmail: string) {
+        const aggregatorOpts = [
+            {
+                $match: {'currentLoan.user.email': requesterEmail}
+            },
+            {
+                $group: { _id: "$currentLoan.status" , totalCopies: {$sum: 1}}
+            },
+            {
+                $sort: {totalCopies: -1}
+            }
+        ]
+
+        return await Copy.aggregate(aggregatorOpts).exec();
+    }
+
+
+
+
+
+
+
 
 
 
@@ -1049,6 +1075,7 @@ export abstract class CopyService {
         const copiesByGenre = await this.getQtyCopiesByGenreAndUserEmail(email);
         const copiesByAuthor = await this.getQtyCopiesByAuthorAndUserEmail(email)
         const copiesByCurrentLoanStatus = await this.getQtyCopiesByLoanStatusAndUserEmail(email);
+        const totalLoanHistory = await LoanHistoryService.getTotalLoanHistoryByOwner(userId);
 
 
         return {
@@ -1066,10 +1093,14 @@ export abstract class CopyService {
                     total: copiesByAuthor.length,
                     copiesByAuthor
                 },
-                currentLoans: {
-                    total: copiesByCurrentLoanStatus.length,
-                    copiesByCurrentLoanStatus
+                loans: {
+                    totalLoanHistory,
+                    currentLoans: {
+                        total: copiesByCurrentLoanStatus.length,
+                        copiesByCurrentLoanStatus
+                    }
                 }
+
             }
 
         }

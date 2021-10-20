@@ -29,6 +29,16 @@ export abstract class LoanHistoryService {
 
     }
 
+    public static async getTotalLoanHistoryByRequester(requesterId: string) {
+        return LoanHistory.countDocuments({'user._id': requesterId});
+    }
+
+    public static async getTotalLoanHistoryByOwner(ownerId: string) {
+        return LoanHistory.countDocuments({ownerId});
+    }
+
+
+
 
 }
 

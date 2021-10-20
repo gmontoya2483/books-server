@@ -5,6 +5,8 @@ import {UserService} from "./user.service";
 import {Follow} from "../models/follow.models";
 import {Pagination} from "../classes/pagination.class";
 import mongoose from "mongoose";
+import {LoanHistoryService} from "./loanHistory.service";
+import {CopyService} from "./copy.service";
 
 export abstract class FollowService{
 
@@ -400,11 +402,13 @@ export abstract class FollowService{
     }
 
 
-    public static async getFollowStatisticsInfo(userId: string) {
+    public static async getFollowStatisticsInfo(userId: string, userEmail: string) {
         const totalFollowers = await this.getQtyFollowingUserId(userId, true);
         const totalFollowersRequest = await this.getQtyFollowingUserId(userId, false);
         const totalFollowing = await this.getQtyFollowedByUserId(userId, true);
         const totalFollowingRequest = await this.getQtyFollowedByUserId(userId, false);
+        const totalLoanHistory = await LoanHistoryService.getTotalLoanHistoryByRequester(userId);
+        const copiesByCurrentLoanStatus = await CopyService.getQtyCopiesByLoanStatusAndRequesterId(userEmail);
 
         return {
             followers: {
@@ -414,6 +418,13 @@ export abstract class FollowService{
             following: {
                 totalFollowing,
                 totalFollowingRequest
+            },
+            requestedLoans: {
+                totalLoanHistory,
+                currentLoans: {
+                    total: copiesByCurrentLoanStatus.length,
+                    copiesByCurrentLoanStatus
+                }
             }
         };
     }
